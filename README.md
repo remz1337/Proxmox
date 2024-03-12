@@ -10,7 +10,7 @@
   <a href="https://github.com/remz1337/Proxmox/blob/remz/.github/CONTRIBUTING.md">Contribute</a> |
   <a href="https://github.com/remz1337/Proxmox/blob/remz/USER_SUBMITTED_GUIDES.md">Guides</a> |
   <a href="https://github.com/remz1337/Proxmox/blob/remz/CHANGELOG.md">Changelog</a> |
-  <a href="https://ko-fi.com/D1D7EP4GF">Support</a>
+  <a href="https://ko-fi.com/remz1337">Support</a>
 </p>
 
 ---
