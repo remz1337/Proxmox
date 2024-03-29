@@ -42,7 +42,7 @@ export TARGETARCH=amd64
 msg_ok "Downloaded Frigate"
 
 msg_info "Building Nginx with custom modules"
-docker/main/build_nginx.sh
+$STD docker/main/build_nginx.sh
 msg_ok "Built Nginx with custom modules"
 
 msg_info "Installing go2rtc"
@@ -56,10 +56,10 @@ msg_info "Installing object detection models"
 cd /opt/frigate
 
 ### OpenVino
-apt install -y wget python3 python3-distutils
+$STD apt install -y wget python3 python3-distutils
 wget https://bootstrap.pypa.io/get-pip.py -O get-pip.py
-python3 get-pip.py "pip"
-pip install -r docker/main/requirements-ov.txt
+$STD python3 get-pip.py "pip"
+$STD pip install -r docker/main/requirements-ov.txt
 
 
 # Get OpenVino Model
@@ -73,16 +73,16 @@ cd /opt/frigate
 export CCACHE_DIR=/root/.ccache
 export CCACHE_MAXSIZE=2G
 
-apt install -y unzip build-essential automake libtool ccache pkg-config
+$STD apt install -y unzip build-essential automake libtool ccache pkg-config
 
 wget https://github.com/libusb/libusb/archive/v1.0.26.zip -O v1.0.26.zip
 unzip v1.0.26.zip
 cd libusb-1.0.26
 ./bootstrap.sh
 ./configure --disable-udev --enable-shared
-make -j $(nproc --all)
+$STD make -j $(nproc --all)
 
-apt install -y --no-install-recommends libusb-1.0-0-dev
+$STD apt install -y --no-install-recommends libusb-1.0-0-dev
 
 cd /opt/frigate/libusb-1.0.26/libusb
 
@@ -117,11 +117,11 @@ msg_ok "Installed object detection models"
 msg_info "Configuring Python dependencies"
 cd /opt/frigate
 
-apt install -y python3 python3-dev wget build-essential cmake git pkg-config libgtk-3-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev libssl-dev libtbb2 libtbb-dev libdc1394-22-dev libopenexr-dev libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gcc gfortran libopenblas-dev liblapack-dev
+$STD apt install -y python3 python3-dev wget build-essential cmake git pkg-config libgtk-3-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev libssl-dev libtbb2 libtbb-dev libdc1394-22-dev libopenexr-dev libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev gcc gfortran libopenblas-dev liblapack-dev
 
-pip3 install -r docker/main/requirements.txt
+$STD pip3 install -r docker/main/requirements.txt
 
-pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-wheels.txt
+$STD pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-wheels.txt
 #pip3 wheel --wheel-dir=/trt-wheels -r /opt/frigate/docker/tensorrt/requirements-amd64.txt
 
 #Copy preconfigured files
@@ -138,7 +138,7 @@ ln -svf /usr/lib/btbn-ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
 ln -svf /usr/lib/btbn-ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
 ln -svf /usr/local/go2rtc/bin/go2rtc /usr/local/bin/go2rtc
 
-pip3 install -U /wheels/*.whl
+$STD pip3 install -U /wheels/*.whl
 ldconfig
 msg_ok "Configured Python dependencies"
 
@@ -149,23 +149,23 @@ msg_info "Installing NodeJS"
 # Install Node 21
 #curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash -
 #sudo apt-get install -y nodejs
-curl -fsSL https://deb.nodesource.com/setup_21.x | bash -
+$STD curl -fsSL https://deb.nodesource.com/setup_21.x | bash -
 
-apt install -y nodejs
+$STD apt install -y nodejs
 #npm install -g npm@9
-npm install -g npm
+$STD npm install -g npm
 msg_ok "Installed NodeJS"
 
 msg_info "Installing Frigate"
-pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
+$STD pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
 
 # Frigate web build
 # This should be architecture agnostic, so speed up the build on multiarch by not using QEMU.
 cd /opt/frigate/web
 
-npm install
+$STD npm install
 
-npm run build
+$STD npm run build
 
 cp -r dist/BASE_PATH/monacoeditorwork/* dist/assets/
 
@@ -215,13 +215,14 @@ cd /opt/frigate
 #sudo mkdir -p /media/frigate
 #sudo chown -R "$(id -u):$(id -g)" /media/frigate
 
-make version
+$STD make version
 
 cd /opt/frigate/web
 
 npm install
 
-npm run build
+#Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
+npm run build 2>/dev/null
 
 cd /opt/frigate
 msg_ok "Installed Frigate"
