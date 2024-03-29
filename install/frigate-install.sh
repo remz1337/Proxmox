@@ -133,7 +133,7 @@ $STD cp -a /opt/frigate/docker/main/rootfs/. /
 #export PATH="$PATH:/usr/lib/btbn-ffmpeg/bin:/usr/local/go2rtc/bin:/usr/local/nginx/sbin"
 
 # Install dependencies
-/opt/frigate/docker/main/install_deps.sh
+$STD /opt/frigate/docker/main/install_deps.sh
 
 #Create symbolic links to ffmpeg and go2rtc
 ln -svf /usr/lib/btbn-ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
@@ -151,7 +151,7 @@ msg_info "Installing NodeJS"
 # Install Node 21
 #curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash -
 #sudo apt-get install -y nodejs
-$STD curl -fsSL https://deb.nodesource.com/setup_21.x | bash -
+$STD $(curl -fsSL https://deb.nodesource.com/setup_21.x | bash -)
 
 $STD apt install -y nodejs
 #npm install -g npm@9
