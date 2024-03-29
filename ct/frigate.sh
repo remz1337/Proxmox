@@ -78,6 +78,15 @@ function update_script() {
   header_info
   #Update Frigate
   if [ "$UPD" == "1" ]; then
+
+	#Ensure enough resources
+	if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "Update Frigate" --yesno "Does the LXC have at least 4vCPU  and 4096MiB RAM?" 10 58); then
+	  CONTINUE=1
+	else
+	  CONTINUE=0
+	  exit-script
+	fi
+
     echo -e "\n ⚠️  Ensure you set 4vCPU & 4096MiB RAM minimum!!! \n"
     msg_info "Stopping Frigate"
     systemctl stop frigate.service
