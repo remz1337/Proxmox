@@ -33,9 +33,9 @@ msg_ok "Installed Dependencies"
 msg_info "Downloading Frigate"
 #Pull Frigate from  repo
 #git clone https://github.com/blakeblackshear/frigate.git
-wget https://github.com/blakeblackshear/frigate/archive/refs/tags/v0.13.0-beta2.tar.gz -O frigate.tar.gz
+$STD wget https://github.com/blakeblackshear/frigate/archive/refs/tags/v0.13.0-beta2.tar.gz -O frigate.tar.gz
 mkdir frigate
-tar -xzf frigate.tar.gz -C frigate --strip-components 1
+$STD tar -xzf frigate.tar.gz -C frigate --strip-components 1
 cd /opt/frigate
 #Used in build dependencies scripts
 export TARGETARCH=amd64
@@ -48,7 +48,7 @@ msg_ok "Built Nginx with custom modules"
 msg_info "Installing go2rtc"
 mkdir -p /usr/local/go2rtc/bin
 cd /usr/local/go2rtc/bin
-wget -O go2rtc "https://github.com/AlexxIT/go2rtc/releases/download/v1.8.1/go2rtc_linux_${TARGETARCH}"
+$STD wget -O go2rtc "https://github.com/AlexxIT/go2rtc/releases/download/v1.8.1/go2rtc_linux_${TARGETARCH}"
 chmod +x go2rtc
 msg_ok "Installed go2rtc"
 
@@ -57,15 +57,17 @@ cd /opt/frigate
 
 ### OpenVino
 $STD apt install -y wget python3 python3-distutils
-wget https://bootstrap.pypa.io/get-pip.py -O get-pip.py
+$STD wget https://bootstrap.pypa.io/get-pip.py -O get-pip.py
 $STD python3 get-pip.py "pip"
 $STD pip install -r docker/main/requirements-ov.txt
 
 
 # Get OpenVino Model
 mkdir -p /opt/frigate/models
-cd /opt/frigate/models && omz_downloader --name ssdlite_mobilenet_v2
-cd /opt/frigate/models && omz_converter --name ssdlite_mobilenet_v2 --precision FP16
+cd /opt/frigate/models
+$STD omz_downloader --name ssdlite_mobilenet_v2
+cd /opt/frigate/models
+$STD omz_converter --name ssdlite_mobilenet_v2 --precision FP16
 
 # Build libUSB without udev.  Needed for Openvino NCS2 support
 cd /opt/frigate
@@ -75,11 +77,11 @@ export CCACHE_MAXSIZE=2G
 
 $STD apt install -y unzip build-essential automake libtool ccache pkg-config
 
-wget https://github.com/libusb/libusb/archive/v1.0.26.zip -O v1.0.26.zip
-unzip v1.0.26.zip
+$STD wget https://github.com/libusb/libusb/archive/v1.0.26.zip -O v1.0.26.zip
+$STD unzip v1.0.26.zip
 cd libusb-1.0.26
-./bootstrap.sh
-./configure --disable-udev --enable-shared
+$STD ./bootstrap.sh
+$STD ./configure --disable-udev --enable-shared
 $STD make -j $(nproc --all)
 
 $STD apt install -y --no-install-recommends libusb-1.0-0-dev
@@ -87,12 +89,12 @@ $STD apt install -y --no-install-recommends libusb-1.0-0-dev
 cd /opt/frigate/libusb-1.0.26/libusb
 
 mkdir -p /usr/local/lib
-/bin/bash ../libtool  --mode=install /usr/bin/install -c libusb-1.0.la '/usr/local/lib'
+$STD /bin/bash ../libtool  --mode=install /usr/bin/install -c libusb-1.0.la '/usr/local/lib'
 mkdir -p /usr/local/include/libusb-1.0
-/usr/bin/install -c -m 644 libusb.h '/usr/local/include/libusb-1.0'
+$STD /usr/bin/install -c -m 644 libusb.h '/usr/local/include/libusb-1.0'
 mkdir -p /usr/local/lib/pkgconfig
 cd /opt/frigate/libusb-1.0.26/
-/usr/bin/install -c -m 644 libusb-1.0.pc '/usr/local/lib/pkgconfig'
+$STD /usr/bin/install -c -m 644 libusb-1.0.pc '/usr/local/lib/pkgconfig'
 ldconfig
 
 ######## Frigate expects model files at root of filesystem
@@ -100,18 +102,18 @@ ldconfig
 cd /
 
 # Get model and labels
-wget -O edgetpu_model.tflite https://github.com/google-coral/test_data/raw/release-frogfish/ssdlite_mobiledet_coco_qat_postprocess_edgetpu.tflite
-wget -O cpu_model.tflite https://github.com/google-coral/test_data/raw/release-frogfish/ssdlite_mobiledet_coco_qat_postprocess.tflite
+$STD wget -O edgetpu_model.tflite https://github.com/google-coral/test_data/raw/release-frogfish/ssdlite_mobiledet_coco_qat_postprocess_edgetpu.tflite
+$STD wget -O cpu_model.tflite https://github.com/google-coral/test_data/raw/release-frogfish/ssdlite_mobiledet_coco_qat_postprocess.tflite
 
 #cp /opt/frigate/labelmap.txt .
-cp /opt/frigate/labelmap.txt /labelmap.txt
-cp -r /opt/frigate/models/public/ssdlite_mobilenet_v2/FP16 openvino-model
+$STD cp /opt/frigate/labelmap.txt /labelmap.txt
+$STD cp -r /opt/frigate/models/public/ssdlite_mobilenet_v2/FP16 openvino-model
 
-wget https://github.com/openvinotoolkit/open_model_zoo/raw/master/data/dataset_classes/coco_91cl_bkgr.txt -O openvino-model/coco_91cl_bkgr.txt
+$STD wget https://github.com/openvinotoolkit/open_model_zoo/raw/master/data/dataset_classes/coco_91cl_bkgr.txt -O openvino-model/coco_91cl_bkgr.txt
 sed -i 's/truck/car/g' openvino-model/coco_91cl_bkgr.txt
 # Get Audio Model and labels
-wget -qO cpu_audio_model.tflite https://tfhub.dev/google/lite-model/yamnet/classification/tflite/1?lite-format=tflite
-cp /opt/frigate/audio-labelmap.txt /audio-labelmap.txt
+$STD wget -qO cpu_audio_model.tflite https://tfhub.dev/google/lite-model/yamnet/classification/tflite/1?lite-format=tflite
+$STD cp /opt/frigate/audio-labelmap.txt /audio-labelmap.txt
 msg_ok "Installed object detection models"
 
 msg_info "Configuring Python dependencies"
@@ -125,7 +127,7 @@ $STD pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-whe
 #pip3 wheel --wheel-dir=/trt-wheels -r /opt/frigate/docker/tensorrt/requirements-amd64.txt
 
 #Copy preconfigured files
-cp -a /opt/frigate/docker/main/rootfs/. /
+$STD cp -a /opt/frigate/docker/main/rootfs/. /
 
 #exports are lost upon system reboot...
 #export PATH="$PATH:/usr/lib/btbn-ffmpeg/bin:/usr/local/go2rtc/bin:/usr/local/nginx/sbin"
@@ -167,19 +169,19 @@ $STD npm install
 
 $STD npm run build
 
-cp -r dist/BASE_PATH/monacoeditorwork/* dist/assets/
+$STD cp -r dist/BASE_PATH/monacoeditorwork/* dist/assets/
 
 cd /opt/frigate/
 
-cp -r /opt/frigate/web/dist/* /opt/frigate/web/
+$STD cp -r /opt/frigate/web/dist/* /opt/frigate/web/
 
 
 
 ### BUILD COMPLETE, NOW INITIALIZE
 
 mkdir /config
-cp -r /opt/frigate/config/. /config
-cp /config/config.yml.example /config/config.yml
+$STD cp -r /opt/frigate/config/. /config
+$STD cp /config/config.yml.example /config/config.yml
 
 ################### EDIT CONFIG FILE HERE ################
 #mqtt:
@@ -202,7 +204,7 @@ cp /config/config.yml.example /config/config.yml
 
 cd /opt/frigate
 
-/opt/frigate/.devcontainer/initialize.sh
+$STD /opt/frigate/.devcontainer/initialize.sh
 
 ### POST_CREATE SCRIPT
 
@@ -219,10 +221,10 @@ $STD make version
 
 cd /opt/frigate/web
 
-npm install
+$STD npm install
 
 #Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
-npm run build 2>/dev/null
+$STD npm run build --silent
 
 cd /opt/frigate
 msg_ok "Installed Frigate"
@@ -273,7 +275,7 @@ sleep 3
 sed -i '/^s6-svc -O \.$/s/^/#/' /opt/frigate/docker/main/rootfs/etc/s6-overlay/s6-rc.d/frigate/run
 
 #Second, install yq, needed by script to check database path
-wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+$STD wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
 chmod a+x /usr/local/bin/yq
 
 #Create systemd service
