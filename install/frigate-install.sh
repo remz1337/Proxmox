@@ -150,8 +150,10 @@ msg_info "Installing NodeJS"
 
 # Install Node 21
 #curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash -
-#Can't seem to be able to silence this one due to some commands in the NodeJS install script ("$@" > /dev/null 2>&1)
-curl -fsSL https://deb.nodesource.com/setup_21.x | bash -
+#curl -fsSL https://deb.nodesource.com/setup_21.x | bash -
+$STD curl -fsSL https://deb.nodesource.com/setup_21.x
+$STD /bin/bash setup_21.x
+
 $STD apt install -y nodejs
 #npm install -g npm@9
 $STD npm install -g npm
@@ -160,13 +162,19 @@ msg_ok "Installed NodeJS"
 msg_info "Installing Frigate"
 $STD pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
 
+echo "DBG:1"
+
 # Frigate web build
 # This should be architecture agnostic, so speed up the build on multiarch by not using QEMU.
 cd /opt/frigate/web
 
 $STD npm install
 
+echo "DBG:2"
+
 $STD npm run build
+
+echo "DBG:3"
 
 $STD cp -r dist/BASE_PATH/monacoeditorwork/* dist/assets/
 
@@ -174,7 +182,7 @@ cd /opt/frigate/
 
 $STD cp -r /opt/frigate/web/dist/* /opt/frigate/web/
 
-
+echo "DBG:4"
 
 ### BUILD COMPLETE, NOW INITIALIZE
 
@@ -205,6 +213,8 @@ cd /opt/frigate
 
 $STD /opt/frigate/.devcontainer/initialize.sh
 
+echo "DBG:5"
+
 ### POST_CREATE SCRIPT
 
 ############## Skip the ssh known hosts editing commands when running as root
@@ -218,12 +228,18 @@ $STD /opt/frigate/.devcontainer/initialize.sh
 
 $STD make version
 
+echo "DBG:6"
+
 cd /opt/frigate/web
 
 $STD npm install
 
+echo "DBG:7"
+
 #Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
 $STD npm run build --silent
+
+echo "DBG:8"
 
 cd /opt/frigate
 msg_ok "Installed Frigate"
