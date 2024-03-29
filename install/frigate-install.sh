@@ -14,7 +14,6 @@ network_check
 update_os
 
 
-
 msg_info "Installing Dependencies"
 #Configuration to make unattended installs with APT
 #https://serverfault.com/questions/48724/100-non-interactive-debian-dist-upgrade
@@ -167,47 +166,17 @@ cd /opt/frigate
 
 $STD /opt/frigate/.devcontainer/initialize.sh
 
-### POST_CREATE SCRIPT
-
-############## Skip the ssh known hosts editing commands when running as root
-######/opt/frigate/.devcontainer/post_create.sh
-
-# Frigate normal container runs as root, so it have permission to create
-# the folders. But the devcontainer runs as the host user, so we need to
-# create the folders and give the host user permission to write to them.
-#sudo mkdir -p /media/frigate
-#sudo chown -R "$(id -u):$(id -g)" /media/frigate
-
 $STD make version
-
-#cd /opt/frigate/web
-
-#$STD npm install
-
-#Make vite build silent
-#sed -i 's/vite build/vite build --logLevel=silent/' /opt/frigate/web/package.json
-#Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
-#npm run build --silent
-#npm run build
-
-
-
-
-
-
 
 # Frigate web build
 # This should be architecture agnostic, so speed up the build on multiarch by not using QEMU.
 cd /opt/frigate/web
 
 $STD npm install
-
-npm run build
+$STD npm run build
 
 $STD cp -r dist/BASE_PATH/monacoeditorwork/* dist/assets/
-
 cd /opt/frigate/
-
 $STD cp -r /opt/frigate/web/dist/* /opt/frigate/web/
 
 ### BUILD COMPLETE, NOW INITIALIZE
@@ -234,13 +203,6 @@ $STD cp /config/config.yml.example /config/config.yml
 #      width: 2560
 #      height: 1920
 #########################################################
-
-
-
-
-
-
-
 
 cd /opt/frigate
 msg_ok "Installed Frigate"
@@ -275,8 +237,8 @@ EOF
 
 echo "${go2rtc_service}" > /etc/systemd/system/go2rtc.service
 
-systemctl start go2rtc
-systemctl enable go2rtc
+$STD systemctl start go2rtc
+$STD systemctl enable go2rtc
 
 #Allow for a small delay before starting the next service
 sleep 3
@@ -317,8 +279,8 @@ EOF
 
 echo "${frigate_service}" > /etc/systemd/system/frigate.service
 
-systemctl start frigate
-systemctl enable frigate
+$STD systemctl start frigate
+$STD systemctl enable frigate
 
 #Allow for a small delay before starting the next service
 sleep 3
@@ -356,8 +318,8 @@ EOF
 
 echo "${nginx_service}" > /etc/systemd/system/nginx.service
 
-systemctl start nginx
-systemctl enable nginx
+$STD systemctl start nginx
+$STD systemctl enable nginx
 msg_ok "Configured Services"
 
 #Test frigate through Nginx access at
@@ -370,6 +332,7 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
+rm /opt/frigate.tar.gz
 $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
