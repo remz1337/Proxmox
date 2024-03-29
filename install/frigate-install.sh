@@ -151,16 +151,19 @@ msg_info "Installing NodeJS"
 # Install Node 21
 #curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash -
 #curl -fsSL https://deb.nodesource.com/setup_21.x | bash -
-$STD curl -fsSL https://deb.nodesource.com/setup_21.x
-$STD /bin/bash setup_21.x
+wget https://deb.nodesource.com/setup_21.x
+/bin/bash setup_21.x
 
-$STD apt install -y nodejs
+apt install -y nodejs
 #npm install -g npm@9
-$STD npm install -g npm
+npm install -g npm
 msg_ok "Installed NodeJS"
 
 msg_info "Installing Frigate"
-$STD pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
+
+echo "DBG:0"
+
+pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
 
 echo "DBG:1"
 
@@ -168,11 +171,11 @@ echo "DBG:1"
 # This should be architecture agnostic, so speed up the build on multiarch by not using QEMU.
 cd /opt/frigate/web
 
-$STD npm install
+npm install
 
 echo "DBG:2"
 
-$STD npm run build
+npm run build
 
 echo "DBG:3"
 
@@ -211,7 +214,7 @@ $STD cp /config/config.yml.example /config/config.yml
 
 cd /opt/frigate
 
-$STD /opt/frigate/.devcontainer/initialize.sh
+/opt/frigate/.devcontainer/initialize.sh
 
 echo "DBG:5"
 
@@ -226,18 +229,18 @@ echo "DBG:5"
 #sudo mkdir -p /media/frigate
 #sudo chown -R "$(id -u):$(id -g)" /media/frigate
 
-$STD make version
+make version
 
 echo "DBG:6"
 
 cd /opt/frigate/web
 
-$STD npm install
+npm install
 
 echo "DBG:7"
 
 #Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
-$STD npm run build --silent
+npm run build --silent
 
 echo "DBG:8"
 
