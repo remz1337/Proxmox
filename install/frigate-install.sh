@@ -151,41 +151,31 @@ msg_info "Installing NodeJS"
 # Install Node 21
 #curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash -
 #curl -fsSL https://deb.nodesource.com/setup_21.x | bash -
-wget https://deb.nodesource.com/setup_21.x
-/bin/bash setup_21.x
+$STD wget https://deb.nodesource.com/setup_21.x
+$STD /bin/bash setup_21.x
 
-apt install -y nodejs
+$STD apt install -y nodejs
 #npm install -g npm@9
-npm install -g npm
+$STD npm install -g npm
 msg_ok "Installed NodeJS"
 
 msg_info "Installing Frigate"
 
-echo "DBG:0"
-
-pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
-
-echo "DBG:1"
+$STD pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
 
 # Frigate web build
 # This should be architecture agnostic, so speed up the build on multiarch by not using QEMU.
 cd /opt/frigate/web
 
-npm install
+$STD npm install
 
-echo "DBG:2"
-
-npm run build
-
-echo "DBG:3"
+$STD npm run build
 
 $STD cp -r dist/BASE_PATH/monacoeditorwork/* dist/assets/
 
 cd /opt/frigate/
 
 $STD cp -r /opt/frigate/web/dist/* /opt/frigate/web/
-
-echo "DBG:4"
 
 ### BUILD COMPLETE, NOW INITIALIZE
 
@@ -214,9 +204,7 @@ $STD cp /config/config.yml.example /config/config.yml
 
 cd /opt/frigate
 
-/opt/frigate/.devcontainer/initialize.sh
-
-echo "DBG:5"
+$STD /opt/frigate/.devcontainer/initialize.sh
 
 ### POST_CREATE SCRIPT
 
@@ -229,20 +217,16 @@ echo "DBG:5"
 #sudo mkdir -p /media/frigate
 #sudo chown -R "$(id -u):$(id -g)" /media/frigate
 
-make version
-
-echo "DBG:6"
+$STD make version
 
 cd /opt/frigate/web
 
-npm install
+$STD npm install
 
-echo "DBG:7"
-
+#Make vite build silent
+sed -i 's/vite build/vite build --loglevel=silent/' /opt/frigate/web/package.json
 #Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
 npm run build --silent
-
-echo "DBG:8"
 
 cd /opt/frigate
 msg_ok "Installed Frigate"
