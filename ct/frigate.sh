@@ -8,7 +8,7 @@ source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/bu
 function header_info {
   clear
   cat <<"EOF"
-	__________  _____________  ____________
+    __________  _____________  ____________
    / ____/ __ \/  _/ ____/   |/_  __/ ____/
   / /_  / /_/ // // / __/ /| | / / / __/   
  / __/ / _, _// // /_/ / ___ |/ / / /___   
