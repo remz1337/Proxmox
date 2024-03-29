@@ -224,7 +224,7 @@ cd /opt/frigate/web
 $STD npm install
 
 #Make vite build silent
-sed -i 's/vite build/vite build --loglevel=silent/' /opt/frigate/web/package.json
+sed -i 's/vite build/vite build --logLevel=silent/' /opt/frigate/web/package.json
 #Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
 npm run build --silent
 
