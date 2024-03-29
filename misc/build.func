@@ -532,6 +532,7 @@ build_container() {
     export FUNCTIONS_FILE_PATH="$(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/alpine-install.func)"
   else
     export FUNCTIONS_FILE_PATH="$(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/install.func)"
+	export NVIDIA_FUNCTIONS_FILE_PATH="$(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)"
   fi
   export CACHER="$APT_CACHER"
   export CACHER_IP="$APT_CACHER_IP"
