@@ -1,0 +1,167 @@
+# This function checks if nvidia drivers are installed
+check_nvidia_drivers() {
+  #### Check if nvidia drivers are installed
+  NVSMI=$(nvidia-smi -h | sed 1q)
+  #NVIDIA System Management Interface -- v535.154.05
+
+  if ! echo $NVSMI | grep -Fq "NVIDIA System Management Interface"; then
+    echo "NVIDIA drivers not found!"
+    #apt-get update
+    #apt-get install pve-headers
+    #Install drivers...
+    exit-script
+  fi
+
+  NVD_VER=${NVSMI#*-- v}
+  NVD_MAJOR=${NVD_VER%%.*}
+
+  if [ $NVD_MAJOR -le 500 ]; then
+    echo "Old NVIDIA drivers detected: $NVD_VER"
+    echo "Ensure you have the latest drivers installed (>500)"
+    exit-script
+  fi
+
+  echo "Nvidia drivers found:$NVD_VER"
+}
+
+# This function lists the available Nvidia GPUs and allows the user to select one
+select_nvidia_gpu() {
+  #### First, select from available Nvidia GPUs
+  ##### LIST AVAILABLE GPUS (map dev to GPU)
+  #nvidia-smi -L
+
+  declare -a MENU
+
+  OFFSET=2
+
+  while IFS= read -r line; do
+    tmp_gpu=${line##* }
+
+    #match lspci device to GPU name (/dev/nvidia*) --> Device Minor
+    #https://github.com/NVIDIA/open-gpu-kernel-modules/discussions/336
+    #cat /proc/driver/nvidia/gpus/0000\:06\:00.0/information
+    GPU_DEV_INFO="/proc/driver/nvidia/gpus/$tmp_gpu/information"
+
+    GPU_MODEL=$(cat $GPU_DEV_INFO | grep "Model:")
+    GPU_MODEL=$(echo ${GPU_MODEL#* } | awk '{$1=$1;print}')
+
+    GPU_DEV_NUM=$(cat $GPU_DEV_INFO | grep "Device Minor:")
+    GPU_DEV_NUM=$(echo ${GPU_DEV_NUM##* } | awk '{$1=$1;print}')
+
+    if [[ $((${#GPU_MODEL} + $OFFSET)) -gt ${MSG_MAX_LENGTH:-} ]]; then
+      MSG_MAX_LENGTH=$((${#GPU_MODEL} + $OFFSET))
+    fi
+    MENU+=("$GPU_DEV_NUM" "$GPU_MODEL" "OFF")
+
+  done <<< $(ls -al /proc/driver/nvidia/gpus | grep "0000:")
+
+#       while IFS= read -r line; do
+#         ID=$(echo ${line} | cut -d ' ' -f 1 | cut -d '.' -f 1)
+#         NAME=${line%%]*}
+#         NAME=${NAME#*[}
+#         OFFSET=2
+#
+#         if [[ $((${#NAME} + $OFFSET)) -gt ${MSG_MAX_LENGTH:-} ]]; then
+#               MSG_MAX_LENGTH=$((${#NAME} + $OFFSET))
+#         fi
+#         MENU+=("$ID" "$NAME" "OFF")
+#
+#       done <<< $(lspci -v | grep "VGA controller")
+
+  if [ ${#MENU[@]} -eq 0 ]; then
+    echo "No Nvidia GPU found."
+    exit-script
+  fi
+
+  # Select GPU
+  if [ $((${#MENU[@]}/3)) -eq 1 ]; then
+    printf "${MENU[0]}"
+  else
+    GPU=""
+    while [ -z "${GPU:+x}" ]; do
+      GPU=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Graphics Cards" --radiolist \
+      "Which GPU would you like to use?\nTo make a selection, use the Spacebar.\n" \
+      16 $(($MSG_MAX_LENGTH + 23)) 6 \
+      "${MENU[@]}" 3>&1 1>&2 2>&3) || exit "Menu aborted."
+    done
+    printf "$GPU"
+  fi
+}
+
+# This function adds the required lines to the container configuration to passthrough the selected GPU
+gpu_lxc_passthrough() {
+  #First check if nvidia device number is passed as first argument
+  if [ $# -ge 1 ] && [ ! -z "$1" ] && [[ $1 =~ ^[-+]?[0-9]+$ ]]; then
+    nvidianum=$1
+  else
+    echo "Missing argument first argument to specify the device number (/dev/nvidiaX)."
+    exit-script
+  fi
+
+  #### Check if devices are available to passthrough
+  declare -a NVDEV_NUM
+
+  while IFS= read -r line; do
+    stringarray=($line)
+    NUM=${stringarray[4]}
+    NUM=${NUM%%,*}
+
+    if [[ ! ${NVDEV_NUM[@]} =~ $NUM ]]; then
+      NVDEV_NUM+=("$NUM")
+    fi
+  #done <<< $(ls -al /dev/nvidia$nvidianum | grep "root.*/dev/nvidia")
+  done <<< $(ls -al /dev/nvidia* | grep "root.*/dev/nvidia[${nvidianum}A-Za-z-]")
+
+  while IFS= read -r line; do
+    stringarray=($line)
+    NUM=${stringarray[4]}
+    NUM=${NUM%%,*}
+
+    if [[ ! ${NVDEV_NUM[@]} =~ $NUM ]]; then
+      NVDEV_NUM+=("$NUM")
+    fi
+  done <<< $(ls -al /dev/dri/* | grep "root.*/dev/dri")
+
+  for value in "${NVDEV_NUM[@]}"; do
+    #echo "Value $value"
+    echo "lxc.cgroup2.devices.allow: c ${value}:* rwm" >> /etc/pve/lxc/${CT_ID}.conf
+  done
+
+  echo "lxc.mount.entry: /dev/nvidia${nvidianum} dev/nvidia${nvidianum} none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
+  echo "lxc.mount.entry: /dev/nvidiactl dev/nvidiactl none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
+  echo "lxc.mount.entry: /dev/nvidia-uvm dev/nvidia-uvm none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
+  echo "lxc.mount.entry: /dev/nvidia-modeset dev/nvidia-modeset none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
+  echo "lxc.mount.entry: /dev/nvidia-uvm-tools dev/nvidia-uvm-tools none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
+  echo "lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir" >> /etc/pve/lxc/${CT_ID}.conf
+}
+
+# This function enables the right kernel modules to enable Nvidia GPU passthrough
+configure_kernel_nvidia() {
+  #### If no device available, configure:
+
+  #Ensure you load the correct kernel modules
+  MODULES=("nvidia-drm" "nvidia" "nvidia_uvm")
+  for module in "${MODULES[@]}"; do
+    if ! grep -Fxq $module /etc/modules-load.d/modules.conf; then
+      echo "Adding module $module"
+      echo "$module" >> /etc/modules-load.d/modules.conf
+    fi
+  done
+
+  #/etc/udev/rules.d/70-nvidia.rules
+  rule1="KERNEL==\"nvidia\", RUN+=\"/bin/bash -c '/usr/bin/nvidia-smi -L && /bin/chmod 666 /dev/nvidia*'\""
+  rule2="KERNEL==\"nvidia_uvm\", RUN+=\"/bin/bash -c '/usr/bin/nvidia-modprobe -c0 -u && /bin/chmod 0666 /dev/nvidia-uvm*'\""
+
+  if ! grep -Fxq "$rule1" /etc/udev/rules.d/70-nvidia.rules; then
+    #echo "not found nvidia rule1"
+    echo "$rule1" >> /etc/udev/rules.d/70-nvidia.rules
+  fi
+
+  if ! grep -Fxq "$rule2" /etc/udev/rules.d/70-nvidia.rules; then
+    #echo "not found nvidia rule2"
+    echo "$rule2" >> /etc/udev/rules.d/70-nvidia.rules
+  fi
+
+  #### NEED TO REBOOT HERE
+  echo "Please reboot the host to reload the Nvidia kernels."
+}
