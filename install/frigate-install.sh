@@ -136,9 +136,9 @@ $STD cp -a /opt/frigate/docker/main/rootfs/. /
 $STD /opt/frigate/docker/main/install_deps.sh
 
 #Create symbolic links to ffmpeg and go2rtc
-ln -svf /usr/lib/btbn-ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
-ln -svf /usr/lib/btbn-ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
-ln -svf /usr/local/go2rtc/bin/go2rtc /usr/local/bin/go2rtc
+$STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
+$STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
+$STD ln -svf /usr/local/go2rtc/bin/go2rtc /usr/local/bin/go2rtc
 
 $STD pip3 install -U /wheels/*.whl
 ldconfig
@@ -150,9 +150,8 @@ msg_info "Installing NodeJS"
 
 # Install Node 21
 #curl -fsSL https://deb.nodesource.com/setup_21.x | sudo -E bash -
-#sudo apt-get install -y nodejs
-$STD $(curl -fsSL https://deb.nodesource.com/setup_21.x | bash -)
-
+#Can't seem to be able to silence this one due to some commands in the NodeJS install script ("$@" > /dev/null 2>&1)
+curl -fsSL https://deb.nodesource.com/setup_21.x | bash -
 $STD apt install -y nodejs
 #npm install -g npm@9
 $STD npm install -g npm
