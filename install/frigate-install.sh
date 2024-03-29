@@ -163,13 +163,46 @@ msg_info "Installing Frigate"
 
 $STD pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
 
+cd /opt/frigate
+
+$STD /opt/frigate/.devcontainer/initialize.sh
+
+### POST_CREATE SCRIPT
+
+############## Skip the ssh known hosts editing commands when running as root
+######/opt/frigate/.devcontainer/post_create.sh
+
+# Frigate normal container runs as root, so it have permission to create
+# the folders. But the devcontainer runs as the host user, so we need to
+# create the folders and give the host user permission to write to them.
+#sudo mkdir -p /media/frigate
+#sudo chown -R "$(id -u):$(id -g)" /media/frigate
+
+$STD make version
+
+#cd /opt/frigate/web
+
+#$STD npm install
+
+#Make vite build silent
+#sed -i 's/vite build/vite build --logLevel=silent/' /opt/frigate/web/package.json
+#Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
+#npm run build --silent
+#npm run build
+
+
+
+
+
+
+
 # Frigate web build
 # This should be architecture agnostic, so speed up the build on multiarch by not using QEMU.
 cd /opt/frigate/web
 
 $STD npm install
 
-$STD npm run build
+npm run build
 
 $STD cp -r dist/BASE_PATH/monacoeditorwork/* dist/assets/
 
@@ -202,31 +235,12 @@ $STD cp /config/config.yml.example /config/config.yml
 #      height: 1920
 #########################################################
 
-cd /opt/frigate
 
-$STD /opt/frigate/.devcontainer/initialize.sh
 
-### POST_CREATE SCRIPT
 
-############## Skip the ssh known hosts editing commands when running as root
-######/opt/frigate/.devcontainer/post_create.sh
 
-# Frigate normal container runs as root, so it have permission to create
-# the folders. But the devcontainer runs as the host user, so we need to
-# create the folders and give the host user permission to write to them.
-#sudo mkdir -p /media/frigate
-#sudo chown -R "$(id -u):$(id -g)" /media/frigate
 
-$STD make version
 
-cd /opt/frigate/web
-
-$STD npm install
-
-#Make vite build silent
-sed -i 's/vite build/vite build --logLevel=silent/' /opt/frigate/web/package.json
-#Not sure why a second rebuild is needed. It throws an error about missing BASE_PATH/assets/index-XXXX.js, but still works. Need to silence that error
-npm run build --silent
 
 cd /opt/frigate
 msg_ok "Installed Frigate"
