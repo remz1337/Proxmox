@@ -16,7 +16,7 @@ update_os
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y \
   curl \
-  gnupg
+  gpg  
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Node.js"
