@@ -13,6 +13,9 @@ setting_up_container
 network_check
 update_os
 
+EMAIL=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "\nEnter your Epic Games account (email)" 9 58 --title "Account" 3>&1 1>&2 2>&3)
+echo -e "${DGN}Using Epic Games Account: ${BGN}$EMAIL${CL}"
+
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y \
   curl \
@@ -34,10 +37,7 @@ wget -qO epicgames-freegames.tar.gz "${RELEASE}"
 tar -xzf epicgames-freegames.tar.gz -C /opt/epicgames-freegames --strip-components 1 --overwrite
 rm -rf epicgames-freegames.tar.gz
 npm install --prefix /opt/epicgames-freegames
-
 mkdir -p /opt/epicgames-freegames/config
-EMAIL=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "\nEnter your Epic Games account (email)" 9 58 --title "Account" 3>&1 1>&2 2>&3)
-echo -e "${DGN}Using Epic Games Account: ${BGN}$EMAIL${CL}"
 
 cat <<EOF >/opt/epicgames-freegames/config/config.json
 {
@@ -72,7 +72,7 @@ WorkingDirectory=/opt/epicgames-freegames
 ExecStart=npm run start
 EOF
 
-cat <<EOF >/etc/systemd/system/epicgames-freegames-timer.timer
+cat <<EOF >/etc/systemd/system/epicgames-freegames.timer
 [Unit]
 Description="Timer for the epicgames-freegames.service"
 [Timer]
@@ -83,8 +83,7 @@ OnUnitActiveSec=6h
 WantedBy=timers.target
 EOF
 
-systemctl enable -q --now epicgames-freegames
-systemctl enable -q --now epicgames-freegames-timer
+systemctl enable -q --now epicgames-freegames.timer
 msg_ok "Created Services"
 
 motd_ssh
