@@ -56,7 +56,7 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -f /opt/epicgames-freegames/config/config.json ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if [[ ! -f /etc/systemd/system/epicgames-freegames.timer ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 msg_info "Updating ${APP} LXC"
 RELEASE=$(curl -s https://api.github.com/repos/claabs/epicgames-freegames-node/releases/latest | grep "tarball_url" | awk '{print substr($2, 2, length($2)-3)}')
 #mkdir -p /opt/epicgames-freegames
