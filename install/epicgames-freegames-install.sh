@@ -13,6 +13,12 @@ setting_up_container
 network_check
 update_os
 
+msg_info "Installing Dependencies (Patience)"
+$STD apt-get install -y \
+  curl \
+  gnupg
+msg_ok "Installed Dependencies"
+
 msg_info "Installing Node.js"
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
