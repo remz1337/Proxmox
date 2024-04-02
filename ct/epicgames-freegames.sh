@@ -73,5 +73,5 @@ build_container
 description
 
 msg_ok "Completed Successfully!\n"
-echo -e "${APP} should be reachable by going to the following URL.
+echo -e "${APP} is configured to be accessed by local tunnel. Please update the configuration to use a reverse proxy with the following URL.
          ${BL}http://${IP}:3000${CL} \n"
