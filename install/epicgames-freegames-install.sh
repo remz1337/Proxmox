@@ -19,6 +19,17 @@ echo -e "${DGN}Using Epic Games Account: ${BGN}$EMAIL${CL}"
 msg_info "Installing Dependencies (Patience)"
 $STD apt-get install -y \
   curl \
+  libnss3 \
+  libatk1.0-0 \
+  libatk-bridge2.0-0 \
+  libcups2 \
+  libxcomposite-dev \
+  libxdamage1 \
+  libxrandr2 \
+  libgbm-dev \
+  libxkbcommon-x11-0 \
+  libpangocairo-1.0-0 \
+  libasound2 \
   gpg  
 msg_ok "Installed Dependencies"
 
