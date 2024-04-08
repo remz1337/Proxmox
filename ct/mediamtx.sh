@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/build.func)
+
+source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
@@ -8,20 +9,20 @@ source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/bu
 function header_info {
 clear
 cat <<"EOF"
-    ____                     __               
-   / __ \_________ _      __/ /___  __________
-  / /_/ / ___/ __ \ | /| / / / __ `/ ___/ ___/
- / ____/ /  / /_/ / |/ |/ / / /_/ / /  / /    
-/_/   /_/   \____/|__/|__/_/\__,_/_/  /_/     
-                                              
+    __  ___         ___       __  __________  __
+   /  |/  /__  ____/ (_)___ _/  |/  /_  __/ |/ /
+  / /|_/ / _ \/ __  / / __ `/ /|_/ / / /  |   /
+ / /  / /  __/ /_/ / / /_/ / /  / / / /  /   |
+/_/  /_/\___/\__,_/_/\__,_/_/  /_/ /_/  /_/|_|
+
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="Prowlarr"
+APP="MediaMTX"
 var_disk="4"
 var_cpu="2"
-var_ram="1024"
+var_ram="2048"
 var_os="debian"
 var_version="12"
 variables
@@ -46,7 +47,6 @@ function default_settings() {
   SD=""
   NS=""
   MAC=""
-  FW=1
   VLAN=""
   SSH="no"
   VERB="no"
@@ -55,7 +55,8 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /var/lib/prowlarr/ ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if [[ ! -d /opt/mediamtx/ ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+
 msg_error "There is currently no update path available."
 exit
 }
@@ -65,5 +66,3 @@ build_container
 description
 
 msg_ok "Completed Successfully!\n"
-echo -e "${APP} should be reachable by going to the following URL.
-         ${BL}http://${IP}:9696${CL} \n"

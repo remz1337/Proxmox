@@ -73,6 +73,7 @@ server:
   infra-cache-slabs: 8
   key-cache-slabs: 8
   serve-expired: yes
+  root-hints: /var/lib/unbound/root.hints
   serve-expired-ttl: 3600
   edns-buffer-size: 1232
   prefetch: yes
@@ -93,7 +94,7 @@ EOF
   cat <<EOF >/etc/dnsmasq.d/99-edns.conf
 edns-packet-max=1232
 EOF
-  wget -q https://www.internic.net/domain/named.root >/var/lib/unbound/root.hints
+  wget -qO /var/lib/unbound/root.hints https://www.internic.net/domain/named.root
   sed -i -e 's/PIHOLE_DNS_1=8.8.8.8/PIHOLE_DNS_1=127.0.0.1#5335/' -e 's/PIHOLE_DNS_2=8.8.4.4/#PIHOLE_DNS_2=8.8.4.4/' /etc/pihole/setupVars.conf
   systemctl enable -q --now unbound
   systemctl restart pihole-FTL.service

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/build.func)
+source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
@@ -8,19 +8,18 @@ source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/bu
 function header_info {
 clear
 cat <<"EOF"
-         ___        
-        / _ \       
-  _ __ | (_) |____  
- |  _ \ > _ <|  _ \ 
- | | | | (_) | | | |
- |_| |_|\___/|_| |_|
- 
+    ________              _           ___    ____
+   / ____/ /___ _      __(_)_______  /   |  /  _/
+  / /_  / / __ \ | /| / / / ___/ _ \/ /| |  / /
+ / __/ / / /_/ / |/ |/ / (__  )  __/ ___ |_/ /
+/_/   /_/\____/|__/|__/_/____/\___/_/  |_/___/
+
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="n8n"
-var_disk="6"
+APP="FlowiseAI"
+var_disk="10"
 var_cpu="2"
 var_ram="2048"
 var_os="debian"
@@ -47,7 +46,6 @@ function default_settings() {
   SD=""
   NS=""
   MAC=""
-  FW=1
   VLAN=""
   SSH="no"
   VERB="no"
@@ -56,17 +54,12 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -f /etc/systemd/system/n8n.service ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-  if [[ "$(node -v | cut -d 'v' -f 2)" == "18."* ]]; then
-    if ! command -v npm >/dev/null 2>&1; then
-      echo "Installing NPM..."
-      apt-get install -y npm >/dev/null 2>&1
-      echo "Installed NPM..."
-    fi
-  fi
-msg_info "Updating ${APP} LXC"
-npm update -g n8n &>/dev/null
-msg_ok "Updated Successfully"
+if [[ ! -f /etc/systemd/system/flowise.service ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+msg_info "Updating ${APP}"
+systemctl stop flowise
+npm install -g flowise --upgrade
+systemctl start flowise
+msg_ok "Updated ${APP}"
 exit
 }
 
@@ -76,4 +69,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} should be reachable by going to the following URL.
-         ${BL}http://${IP}:5678${CL} \n"
+         ${BL}http://${IP}:3000${CL} \n"

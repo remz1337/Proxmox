@@ -10,6 +10,74 @@
 - All LXC instances created using this repository come pre-installed with Midnight Commander, which is a command-line tool (`mc`) that offers a user-friendly file and directory management interface for the terminal environment.
 - 🚨 **The scripts in the repository will no longer provide support for Proxmox VE 7 starting from July 2024 (scripts will not execute on PVE7). Subsequent <a href='https://forum.proxmox.com/threads/proxmox-ve-support-lifecycle.35755/' target='_blank' rel='noopener noreferrer'>Proxmox VE - Support Lifecycle</a>**
 
+## 2024-04-05
+
+### Changed
+
+- **Medusa LXC**
+  - NEW Script
+- **WatchYourLAN LXC**
+  - NEW Script
+
+## 2024-04-04
+
+### Changed
+
+- **Actual Budget LXC**
+  - NEW Script
+
+## 2024-04-03
+
+### Changed
+
+- **LazyLibrarian LXC**
+  - NEW Script
+
+## 2024-04-01
+
+### Changed
+
+- **Frigate LXC**
+  - NEW Script
+
+## 2024-03-26
+
+### Changed
+
+- **MediaMTX LXC**
+  - NEW Script
+
+## 2024-03-25
+
+### Changed
+
+- **Proxmox VE Post Install**
+  - ~Requires Proxmox Virtual Environment Version 8.1.1 or later.~
+  - Requires Proxmox Virtual Environment Version 8.0 or later.
+- **Proxmox Backup Server LXC**
+  - NEW Script
+
+## 2024-03-24
+
+### Changed
+
+- **SmokePing LXC**
+  - NEW Script
+
+## 2024-03-13
+
+### Changed
+
+- **FlowiseAI LXC**
+  - NEW Script
+
+## 2024-03-11
+
+### Changed
+
+- **Wastebin LXC**
+  - NEW Script
+
 ## 2024-03-08
 
 ### Changed

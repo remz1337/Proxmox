@@ -1,5 +1,5 @@
 name: Problems with a script.
-description: Generate a report on an issue pertaining specifically to a script. For other inquires please share them in the Discussions section. Blank issues will be closed immediately.
+description: Generate a report on an issue pertaining specifically to a script. For other inquires please share them in the Discussions section.
 body:
   - type: markdown
     attributes:
@@ -23,6 +23,19 @@ body:
     validations:
       required: true
   - type: dropdown
+    id: settings
+    validations:
+      required: true
+    attributes:
+      label: What settings are you currently utilizing?
+      options:
+        - 
+        - Default Settings
+        - Advanced Settings
+  - type: markdown
+    attributes:
+      value: (if Advanced Settings, please try Default Settings before creating an issue)
+  - type: dropdown
     id: distribution
     validations:
       required: true
@@ -30,12 +43,12 @@ body:
       label: Which Linux distribution are you employing?
       options:
         - 
-        - Default Settings
+        - Alpine
         - Debian 11
         - Debian 12
         - Ubuntu 20.04
         - Ubuntu 22.04
-        - Ubuntu 23.04
+        - Ubuntu 23.10
   - type: textarea
     id: screenshot
     attributes:
