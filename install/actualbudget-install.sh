@@ -17,8 +17,8 @@ msg_info "Installing Dependencies"
 $STD apt-get install -y curl
 $STD apt-get install -y sudo
 $STD apt-get install -y mc
-$STD apt-get install -y ca-certificates
-$STD apt-get install -y gnupg
+$STD apt-get install -y gpg
+$STD apt-get install -y git
 msg_ok "Installed Dependencies"
 
 msg_info "Setting up Node.js Repository"
@@ -30,26 +30,30 @@ msg_ok "Set up Node.js Repository"
 msg_info "Installing Node.js"
 $STD apt-get update
 $STD apt-get install -y nodejs
+$STD npm install --global yarn
 msg_ok "Installed Node.js"
 
-msg_info "Installing n8n (Patience)"
-$STD npm install --global patch-package
-$STD npm install --global n8n
-msg_ok "Installed n8n"
+msg_info "Installing Actual Budget"
+$STD git clone https://github.com/actualbudget/actual-server.git /opt/actualbudget
+cd /opt/actualbudget
+$STD yarn install
+msg_ok "Installed Actual Budget"
 
 msg_info "Creating Service"
-cat <<EOF >/etc/systemd/system/n8n.service
+cat <<EOF >/etc/systemd/system/actualbudget.service
 [Unit]
-Description=n8n
+Description=Actual Budget Service
+After=network.target
 
 [Service]
-Type=simple
-Environment="N8N_SECURE_COOKIE=false"
-ExecStart=n8n start
+Type=exec
+WorkingDirectory=/opt/actualbudget
+ExecStart=/usr/bin/yarn start
+
 [Install]
 WantedBy=multi-user.target
 EOF
-$STD systemctl enable --now n8n
+systemctl enable -q --now actualbudget.service
 msg_ok "Created Service"
 
 motd_ssh

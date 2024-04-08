@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/build.func)
+
+source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
@@ -8,21 +9,20 @@ source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/bu
 function header_info {
 clear
 cat <<"EOF"
-         ___        
-        / _ \       
-  _ __ | (_) |____  
- |  _ \ > _ <|  _ \ 
- | | | | (_) | | | |
- |_| |_|\___/|_| |_|
- 
+   _____                 __        ____  _
+  / ___/____ ___  ____  / /_____  / __ \(_)___  ____ _
+  \__ \/ __ `__ \/ __ \/ //_/ _ \/ /_/ / / __ \/ __ `/
+ ___/ / / / / / / /_/ / ,< /  __/ ____/ / / / / /_/ /
+/____/_/ /_/ /_/\____/_/|_|\___/_/   /_/_/ /_/\__, /
+                                             /____/
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="n8n"
-var_disk="6"
-var_cpu="2"
-var_ram="2048"
+APP="SmokePing"
+var_disk="2"
+var_cpu="1"
+var_ram="512"
 var_os="debian"
 var_version="12"
 variables
@@ -47,7 +47,6 @@ function default_settings() {
   SD=""
   NS=""
   MAC=""
-  FW=1
   VLAN=""
   SSH="no"
   VERB="no"
@@ -56,16 +55,11 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -f /etc/systemd/system/n8n.service ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-  if [[ "$(node -v | cut -d 'v' -f 2)" == "18."* ]]; then
-    if ! command -v npm >/dev/null 2>&1; then
-      echo "Installing NPM..."
-      apt-get install -y npm >/dev/null 2>&1
-      echo "Installed NPM..."
-    fi
-  fi
-msg_info "Updating ${APP} LXC"
-npm update -g n8n &>/dev/null
+if ! command -v smokeping &> /dev/null; then msg_error "No ${APP} Installation Found!"; exit; fi
+
+msg_info "Updating ${APP}"
+apt-get update &>/dev/null
+apt-get -y upgrade &>/dev/null
 msg_ok "Updated Successfully"
 exit
 }
@@ -76,4 +70,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} should be reachable by going to the following URL.
-         ${BL}http://${IP}:5678${CL} \n"
+         ${BL}http://${IP}/smokeping${CL} \n"

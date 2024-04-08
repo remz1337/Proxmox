@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/build.func)
+source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
@@ -8,21 +8,20 @@ source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/bu
 function header_info {
 clear
 cat <<"EOF"
-         ___        
-        / _ \       
-  _ __ | (_) |____  
- |  _ \ > _ <|  _ \ 
- | | | | (_) | | | |
- |_| |_|\___/|_| |_|
- 
+    __  ___         __
+   /  |/  /__  ____/ /_  ___________ _
+  / /|_/ / _ \/ __  / / / / ___/ __ `/
+ / /  / /  __/ /_/ / /_/ (__  ) /_/ / 
+/_/  /_/\___/\__,_/\__,_/____/\__,_/
+
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="n8n"
+APP="Medusa"
 var_disk="6"
 var_cpu="2"
-var_ram="2048"
+var_ram="1024"
 var_os="debian"
 var_version="12"
 variables
@@ -47,7 +46,6 @@ function default_settings() {
   SD=""
   NS=""
   MAC=""
-  FW=1
   VLAN=""
   SSH="no"
   VERB="no"
@@ -56,17 +54,13 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -f /etc/systemd/system/n8n.service ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-  if [[ "$(node -v | cut -d 'v' -f 2)" == "18."* ]]; then
-    if ! command -v npm >/dev/null 2>&1; then
-      echo "Installing NPM..."
-      apt-get install -y npm >/dev/null 2>&1
-      echo "Installed NPM..."
-    fi
-  fi
-msg_info "Updating ${APP} LXC"
-npm update -g n8n &>/dev/null
-msg_ok "Updated Successfully"
+if [[ ! -d /opt/medusa ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+msg_info "Updating ${APP}"
+systemctl stop medusa.service
+/opt/medusa
+git pull
+systemctl start medusa.service
+msg_ok "Successfully Updated ${APP}"
 exit
 }
 
@@ -76,4 +70,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} should be reachable by going to the following URL.
-         ${BL}http://${IP}:5678${CL} \n"
+         ${BL}http://${IP}:8081${CL} \n"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/build.func)
+source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
 # Author: tteck (tteckster)
 # License: MIT
@@ -8,19 +8,19 @@ source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/bu
 function header_info {
 clear
 cat <<"EOF"
-    ____                     __               
-   / __ \_________ _      __/ /___  __________
-  / /_/ / ___/ __ \ | /| / / / __ `/ ___/ ___/
- / ____/ /  / /_/ / |/ |/ / / /_/ / /  / /    
-/_/   /_/   \____/|__/|__/_/\__,_/_/  /_/     
-                                              
+    ___        __              __   ____            __           __
+   /   | _____/ /___  ______ _/ /  / __ )__  ______/ /___ ____  / /_
+  / /| |/ ___/ __/ / / / __ `/ /  / __  / / / / __  / __ `/ _ \/ __/
+ / ___ / /__/ /_/ /_/ / /_/ / /  / /_/ / /_/ / /_/ / /_/ /  __/ /_
+/_/  |_\___/\__/\__,_/\__,_/_/  /_____/\__,_/\__,_/\__, /\___/\__/
+                                                  /____/
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="Prowlarr"
+APP="Actual Budget"
 var_disk="4"
-var_cpu="2"
+var_cpu="1"
 var_ram="1024"
 var_os="debian"
 var_version="12"
@@ -46,7 +46,6 @@ function default_settings() {
   SD=""
   NS=""
   MAC=""
-  FW=1
   VLAN=""
   SSH="no"
   VERB="no"
@@ -55,8 +54,14 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -d /var/lib/prowlarr/ ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-msg_error "There is currently no update path available."
+if [[ ! -d /opt/actualbudget ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+msg_info "Updating ${APP}"
+systemctl stop actualbudget.service
+/opt/actualbudget
+git pull
+yarn install
+systemctl start actualbudget.service
+msg_ok "Successfully Updated ${APP}"
 exit
 }
 
@@ -66,4 +71,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} should be reachable by going to the following URL.
-         ${BL}http://${IP}:9696${CL} \n"
+         ${BL}http://${IP}:5006${CL} \n"
