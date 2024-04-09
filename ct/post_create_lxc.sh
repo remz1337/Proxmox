@@ -11,6 +11,8 @@
 YW=$(echo "\033[33m")
 BL=$(echo "\033[36m")
 RD=$(echo "\033[01;31m")
+BGN=$(echo "\033[4;92m")
+DGN=$(echo "\033[32m")
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
 CM="${GN}✓${CL}"
@@ -68,6 +70,13 @@ function msg_error() {
   echo -e "${BFR} ${CROSS} ${RD}${msg}${CL}"
 }
 
+# This function sets up the Container OS by generating the locale, setting the timezone, and checking the network connection
+default_setup() {
+  msg_info "Setting up Container"
+  lxc-attach -n "$CTID" -- bash -c "source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/install.func) && color && verb_ip6 && catch_errors && setting_up_container && network_check && update_os" || exit
+  msg_ok "Set up Container"
+}
+
 function parse_config(){
   CONFIG=$(pct config $CTID)
 #  while IFS= read -r line || [[ -n $line ]]; do
@@ -94,14 +103,20 @@ function user_exists(){
 } # silent, it just sets the exit code
 
 
+echo -e "Customizing LXC creation\n"
+
 # Test if required variables are set
 [[ "${CTID:-}" ]] || exit "You need to set 'CTID' variable."
 #[[ "${PCT_OSTYPE:-}" ]] || exit "You need to set 'PCT_OSTYPE' variable."
 
 
+#Call default setup to have local, timezone and update APT
+default_setup
+
+
 ###### Need function to read/write environment variables (default user/passwords/domain...)
 DEFAULT_USER="myuser"
-DEFAULT_PASSWORD="mypassword"
+DEFAULT_PASSWORD="mypassword" # Use a prompt to save it encrypted, like the admin token for vaultwarden
 SHARE_USER="shareuser"
 DOMAIN="mydomain.com"
 
@@ -124,13 +139,13 @@ parse_config
 
 #Install APT proxy client
 msg_info "Installing APT proxy client (squid-deb-proxy-client)"
-pct exec $CTID -- /bin/bash -c "apt install -y squid-deb-proxy-client"
+pct exec $CTID -- /bin/bash -c "apt install -yqq squid-deb-proxy-client"
 msg_ok "Installed APT proxy client (squid-deb-proxy-client)"
 
 #Install sudo if Debian
 if [ "$OSTYPE" == "debian" ]; then
   msg_info "Installing sudo"
-  pct exec $CTID -- /bin/bash -c "apt install -y sudo"
+  pct exec $CTID -- /bin/bash -c "apt install -yqq sudo"
   msg_ok "Installed sudo"
 fi
 
@@ -140,7 +155,8 @@ if user_exists "$DEFAULT_USER"; then
   msg_error 'User $DEFAULT_USER already exists.'
 else
 #  echo 'user not found'
-  pct exec $CTID -- /bin/bash -c "adduser $DEFAULT_USER --gecos '' --uid 1000"
+  pct exec $CTID -- /bin/bash -c "adduser $DEFAULT_USER --disabled-password --gecos '' --uid 1000"
+  pct exec $CTID -- /bin/bash -c "chpasswd <<<'$DEFAULT_USER:$DEFAULT_PASSWORD'"
   pct exec $CTID -- /bin/bash -c "usermod -aG sudo $DEFAULT_USER"
   #echo "Default user added."
 fi
