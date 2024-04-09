@@ -117,8 +117,8 @@ default_setup
 
 
 ###### Need function to read/write environment variables (default user/passwords/domain...)
-DEFAULT_USER="myuser"
-DEFAULT_PASSWORD="mypassword" # Use a prompt to save it encrypted, like the admin token for vaultwarden
+SSH_USER="myuser"
+SSH_PASSWORD="mypassword" # Use a prompt to save it encrypted, like the admin token for vaultwarden
 SHARE_USER="shareuser"
 DOMAIN="mydomain.com"
 
@@ -141,28 +141,28 @@ parse_config
 
 #Install APT proxy client
 msg_info "Installing APT proxy client (squid-deb-proxy-client)"
-pct exec $CTID -- /bin/bash -c "apt install -yqq squid-deb-proxy-client"
+pct exec $CTID -- /bin/bash -c "apt install -qqy squid-deb-proxy-client &>/dev/null"
 msg_ok "Installed APT proxy client (squid-deb-proxy-client)"
 
 #Install sudo if Debian
 if [ "$OSTYPE" == "debian" ]; then
   msg_info "Installing sudo"
-  pct exec $CTID -- /bin/bash -c "apt install -yqq sudo"
+  pct exec $CTID -- /bin/bash -c "apt install -yqq sudo &>/dev/null"
   msg_ok "Installed sudo"
 fi
 
-#Add default sudo user DEFAULT_USER
-msg_info "Adding default sudo user $DEFAULT_USER"
-if user_exists "$DEFAULT_USER"; then
-  msg_error 'User $DEFAULT_USER already exists.'
+#Add ssh sudo user SSH_USER
+msg_info "Adding SSH user $SSH_USER (sudo)"
+if user_exists "$SSH_USER"; then
+  msg_error 'User $SSH_USER already exists.'
 else
 #  echo 'user not found'
-  pct exec $CTID -- /bin/bash -c "adduser $DEFAULT_USER --disabled-password --gecos '' --uid 1000"
-  pct exec $CTID -- /bin/bash -c "chpasswd <<<'$DEFAULT_USER:$DEFAULT_PASSWORD'"
-  pct exec $CTID -- /bin/bash -c "usermod -aG sudo $DEFAULT_USER"
+  pct exec $CTID -- /bin/bash -c "adduser $SSH_USER --disabled-password --gecos '' --uid 1000 &>/dev/null"
+  pct exec $CTID -- /bin/bash -c "chpasswd <<<'$SSH_USER:$SSH_PASSWORD'"
+  pct exec $CTID -- /bin/bash -c "usermod -aG sudo $SSH_USER"
   #echo "Default user added."
 fi
-msg_ok "Added default sudo user $DEFAULT_USER"
+msg_ok "Added SSH user $SSH_USER (sudo)"
 
 
 if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add $SHARE_USER user?" 10 58); then
@@ -180,7 +180,7 @@ if [[ "${SHARED_MOUNT}" == "yes" ]]; then
     msg_error 'User $SHARE_USER already exists.'
   else
   #  echo 'user not found'
-    pct exec $CTID -- /bin/bash -c "adduser $SHARE_USER --gecos '' --uid 1001"
+    pct exec $CTID -- /bin/bash -c "adduser $SHARE_USER --disabled-password --gecos '' --uid 1001 &>/dev/null"
     echo "User $SHARE_USER added."
 
     #Shutdown LXC for safety
@@ -217,19 +217,19 @@ echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
 if [[ "${POSTFIX_SAT}" == "yes" ]]; then
   msg_info "Configuring Postfix Satellite"
   #Install deb-conf-utils to set parameters
-  pct exec $CTID -- /bin/bash -c "apt install -y debconf-utils"
+  pct exec $CTID -- /bin/bash -c "apt install -qqy debconf-utils &>/dev/null"
   pct exec $CTID -- /bin/bash -c "systemctl stop postfix"
   pct exec $CTID -- /bin/bash -c "mv /etc/postfix/main.cf /etc/postfix/main.cf.BAK"
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/main_mailer_type        select  Satellite system | sudo debconf-set-selections -v"
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/destinations    string  $HOSTNAME.localdomain, localhost.localdomain, localhost | sudo debconf-set-selections -v"
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/mailname        string  $HOSTNAME.$DOMAIN | sudo debconf-set-selections -v"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/main_mailer_type        select  Satellite system | debconf-set-selections"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/destinations    string  $HOSTNAME.localdomain, localhost.localdomain, localhost | debconf-set-selections"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/mailname        string  $HOSTNAME.$DOMAIN | debconf-set-selections"
   #This config assumes that the postfix relay host is already set up in another LXC with hostname "postfix" (using port 255)
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/relayhost       string  [postfix.$DOMAIN]:255 | sudo debconf-set-selections -v"
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/mynetworks      string  127.0.0.0/8 | sudo debconf-set-selections -v"
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/mailbox_limit      string  0 | sudo debconf-set-selections -v"
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/protocols      select  all | sudo debconf-set-selections -v"
-  pct exec $CTID -- /bin/bash -c "dpkg-reconfigure debconf -f noninteractive"
-  pct exec $CTID -- /bin/bash -c "dpkg-reconfigure postfix -f noninteractive"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/relayhost       string  [postfix.$DOMAIN]:255 | debconf-set-selections"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/mynetworks      string  127.0.0.0/8 | debconf-set-selections"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/mailbox_limit      string  0 | debconf-set-selections"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/protocols      select  all | debconf-set-selections"
+  pct exec $CTID -- /bin/bash -c "dpkg-reconfigure debconf -f noninteractive &>/dev/null"
+  pct exec $CTID -- /bin/bash -c "dpkg-reconfigure postfix -f noninteractive &>/dev/null"
   pct exec $CTID -- /bin/bash -c "postconf 'smtp_tls_security_level = encrypt'"
   pct exec $CTID -- /bin/bash -c "postconf 'smtp_tls_wrappermode = yes'"
   pct exec $CTID -- /bin/bash -c "systemctl restart postfix"
