@@ -150,6 +150,7 @@ echo_default() {
   echo -e "${DGN}Using DNS Search Domain: ${BGN}Host${CL}"
   echo -e "${DGN}Using DNS Server Address: ${BGN}Host${CL}"
   echo -e "${DGN}Using MAC Address: ${BGN}Default${CL}"
+  echo -e "${DGN}Enable Firewall: ${BGN}Yes${CL}"
   echo -e "${DGN}Using VLAN Tag: ${BGN}Default${CL}"
   echo -e "${DGN}Enable Root SSH Access: ${BGN}No${CL}"
   echo -e "${DGN}Enable Verbose Mode: ${BGN}No${CL}"
