@@ -277,7 +277,12 @@ EOF
     #pct start $CTID
     #sleep 3
   fi
-  msg_info "Mounted shared directory"
+  msg_ok "Mounted shared directory"
+
+  msg_info "Rebooting LXC to mount shared directory"
+  pct reboot $CTID
+  sleep 3
+  msg_ok "Rebooting LXC to mount shared directory"
 fi
 
 
@@ -316,7 +321,3 @@ if [[ "${POSTFIX_SAT}" == "yes" ]]; then
 fi
 
 msg_ok "Post install script completed."
-
-pct reboot $CTID
-sleep 3
-#exit
