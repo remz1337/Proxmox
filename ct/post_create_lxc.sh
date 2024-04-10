@@ -204,12 +204,12 @@ if [ "$PCT_OSTYPE" == "debian" ]; then
 fi
 
 
-if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add sudo user $SSH_USER with SSH access?" 10 58); then
+if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
   ADD_SSH_USER="yes"
 else
   ADD_SSH_USER="no"
 fi
-echo -e "${DGN}Add SSH User $SSH_USER: ${BGN}$ADD_SSH_USER${CL}"
+echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
 
 if [[ "${ADD_SSH_USER}" == "yes" ]]; then
   if [ -z "$SSH_USER" ] || [ -z "$SSH_PASSWORD" ] ; then
