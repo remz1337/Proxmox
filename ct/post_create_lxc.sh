@@ -212,7 +212,7 @@ fi
 echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
 
 if [[ "${ADD_SSH_USER}" == "yes" ]]; then
-  if [ -z "$SSH_USER" ] || [ -z "$SSH_PASSWORD" ] ; then
+  if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
     msg_error "Missing proxmox-helper-scripts environment variables"
     add_proxmox_helper_scripts_env "SSH_USER"
     add_proxmox_helper_scripts_env "SSH_PASSWORD"
@@ -241,7 +241,7 @@ echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
 
 
 if [[ "${SHARED_MOUNT}" == "yes" ]]; then
-  if [ -z "$SHARE_USER" ] ; then
+  if [ -z ${SHARE_USER+x} ]; then
     msg_error "Missing proxmox-helper-scripts environment variables"
     add_proxmox_helper_scripts_env "SHARE_USER"
   fi
@@ -286,7 +286,7 @@ fi
 echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
 
 if [[ "${POSTFIX_SAT}" == "yes" ]]; then
-  if [ -z "$DOMAIN" ] ; then
+  if [ -z {$DOMAIN+x} ]; then
     msg_error "Missing proxmox-helper-scripts environment variables"
     add_proxmox_helper_scripts_env "DOMAIN"
   fi
