@@ -232,7 +232,7 @@ if [[ "${ADD_SSH_USER}" == "yes" ]]; then
 fi
 
 
-if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add $SHARE_USER user?" 10 58); then
+if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
   SHARED_MOUNT="yes"
 else
   SHARED_MOUNT="no"
