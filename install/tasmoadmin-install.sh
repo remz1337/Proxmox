@@ -35,18 +35,18 @@ chown -R www-data:www-data /var/www/tasmoadmin
 chmod 777 /var/www/tasmoadmin/tmp /var/www/tasmoadmin/data
 cat <<EOF >/etc/apache2/sites-available/tasmoadmin.conf
 <VirtualHost *:9999>
-	ServerName tasmoadmin
-	ServerAdmin webmaster@localhost
-	DocumentRoot /var/www/tasmoadmin
-	<Directory /var/www/tasmoadmin>
-	AllowOverride All
-	Order allow,deny
-	allow from all
-	</Directory>
-	ErrorLog /var/log/apache2/error.log
-	LogLevel warn
-	CustomLog /var/log/apache2/access.log combined
-	ServerSignature On
+    ServerName tasmoadmin
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/tasmoadmin
+    <Directory /var/www/tasmoadmin>
+    AllowOverride All
+    Order allow,deny
+    allow from all
+    </Directory>
+    ErrorLog /var/log/apache2/error.log
+    LogLevel warn
+    CustomLog /var/log/apache2/access.log combined
+    ServerSignature On
 </VirtualHost>
 EOF
 sed -i '6iListen 9999' /etc/apache2/ports.conf

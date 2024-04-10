@@ -21,7 +21,7 @@ if DB_ENGINE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "VAULTWA
   "postgresql" "" OFF \
   3>&1 1>&2 2>&3); then
   if [ -n "$DB_ENGINE" ]; then
-	echo -e "${DGN}Using Database Engine: ${BGN}$DB_ENGINE${CL}"
+    echo -e "${DGN}Using Database Engine: ${BGN}$DB_ENGINE${CL}"
   fi
 else
   exit-script

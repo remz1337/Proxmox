@@ -57,13 +57,13 @@ cat <<EOF >/opt/epicgames-freegames/config/config.json
   "logLevel": "info",
   "webPortalConfig": {
     //localtunnel is used when there is no reverse proxy
-	"localtunnel": true,
+    "localtunnel": true,
     //Once a reverse proxy has been set up, comment the localtunnel and uncomment the baseUrl (with the correct value)
-	//"baseUrl": "https://epicgames-freegames.example.com",
+    //"baseUrl": "https://epicgames-freegames.example.com",
   },
   "accounts": [
     {
-	  //Enter your Epic Games account email here
+      //Enter your Epic Games account email here
       "email": "${EMAIL}",
     },
   ],
