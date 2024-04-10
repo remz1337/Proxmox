@@ -105,11 +105,12 @@ function user_exists(){
 } # silent, it just sets the exit code
 
 
-echo -e "Customizing LXC creation\n"
+echo -e "${BL}Customizing LXC creation${CL}"
 
 # Test if required variables are set
 [[ "${CTID:-}" ]] || exit "You need to set 'CTID' variable."
-#[[ "${PCT_OSTYPE:-}" ]] || exit "You need to set 'PCT_OSTYPE' variable."
+[[ "${PCT_OSTYPE:-}" ]] || exit "You need to set 'PCT_OSTYPE' variable."
+[[ "${PCT_OSVERSION:-}" ]] || exit "You need to set 'PCT_OSVERSION' variable."
 
 
 #Call default setup to have local, timezone and update APT
@@ -140,12 +141,18 @@ DOMAIN="mydomain.com"
 parse_config
 
 #Install APT proxy client
-msg_info "Installing APT proxy client (squid-deb-proxy-client)"
-pct exec $CTID -- /bin/bash -c "apt install -qqy squid-deb-proxy-client &>/dev/null"
-msg_ok "Installed APT proxy client (squid-deb-proxy-client)"
+msg_info "Installing APT proxy client"
+if [ "$PCT_OSTYPE" == "debian" ] && [ "$PCT_OSVERSION" == "12" ]; then
+  #Squid-deb-proxy-client is not available on Deb12, not sure if it's an issue with using PVE7
+  #auto-apt-proxy needs a DNS record "apt-proxy" pointing to AptCacherNg machine IP (I did it using PiHole)
+  pct exec $CTID -- /bin/bash -c "apt install -qqy auto-apt-proxy &>/dev/null"
+else
+  pct exec $CTID -- /bin/bash -c "apt install -qqy squid-deb-proxy-client &>/dev/null"
+fi
+msg_ok "Installed APT proxy client"
 
 #Install sudo if Debian
-if [ "$OSTYPE" == "debian" ]; then
+if [ "$PCT_OSTYPE" == "debian" ]; then
   msg_info "Installing sudo"
   pct exec $CTID -- /bin/bash -c "apt install -yqq sudo &>/dev/null"
   msg_ok "Installed sudo"
