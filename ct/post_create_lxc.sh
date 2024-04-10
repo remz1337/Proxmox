@@ -104,6 +104,50 @@ function user_exists(){
   pct exec $CTID -- /bin/bash -c "id $1 &>/dev/null;"
 } # silent, it just sets the exit code
 
+# Set a global variable for the PHS environment file
+PVE_ENV="/etc/pve-helper-scripts.conf"
+
+function read_proxmox_helper_scripts_env(){
+  #Check if file exists
+  if [ ! -f "$PVE_ENV" ]; then
+    echo -e "${BL}File not found. Creating file...${CL}"
+    touch "$PVE_ENV"
+    chown root:root "$PVE_ENV"
+    chmod 0600 "$PVE_ENV"
+  else
+    source "$PVE_ENV"
+#    if [ -z "$SSH_USER" ] || [ -z "$SSH_PASSWORD" ] || [ -z "$SHARE_USER" ] || [ -z "$DOMAIN" ]; then
+#      msg_error "Missing proxmox-helper-scripts environment variables"
+#      exit-script
+#    fi
+  fi
+}
+
+function add_proxmox_helper_scripts_env(){
+  #check if first parameter was passed and it's an integer
+  if [ $# -ge 1 ] && [ ! -z "$1" ]; then
+    PHS_VAR_NAME=$1
+    if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 --title "VALUE" 3>&1 1>&2 2>&3); then
+      if [ -z "$PHS_VAR_VALUE" ]; then
+        PHS_VAR_VALUE=""
+      fi
+      echo -e "${DGN}Setting Proxmox-Helper-Scripts Envrionment Variable $PHS_VAR_NAME: ${BGN}${PHS_VAR_VALUE}${CL}"
+      if grep -q "${PHS_VAR_NAME}=.*" "$PVE_ENV"; then
+        # code if found
+        sed -i 's/${PHS_VAR_NAME}=.*/${PHS_VAR_NAME}=${PHS_VAR_VALUE}/g' "$PVE_ENV"
+      else
+        # code if not found
+        echo "${PHS_VAR_NAME}=${PHS_VAR_VALUE}" >> "$PVE_ENV"
+      fi
+    else
+      exit-script
+    fi
+  else
+    msg_error "You need to pass the variable name to set as the first parameter"
+  fi
+  read_proxmox_helper_scripts_env
+}
+
 
 echo -e "${BL}Customizing LXC creation${CL}"
 
@@ -118,10 +162,11 @@ default_setup
 
 
 ###### Need function to read/write environment variables (default user/passwords/domain...)
-SSH_USER="myuser"
-SSH_PASSWORD="mypassword" # Use a prompt to save it encrypted, like the admin token for vaultwarden
-SHARE_USER="shareuser"
-DOMAIN="mydomain.com"
+#SSH_USER="myuser"
+#SSH_PASSWORD="mypassword" # Use a prompt to save it encrypted, like the admin token for vaultwarden
+#SHARE_USER="shareuser"
+#DOMAIN="mydomain.com"
+read_proxmox_helper_scripts_env
 
 
 #CTID=$1
@@ -158,18 +203,33 @@ if [ "$PCT_OSTYPE" == "debian" ]; then
   msg_ok "Installed sudo"
 fi
 
-#Add ssh sudo user SSH_USER
-msg_info "Adding SSH user $SSH_USER (sudo)"
-if user_exists "$SSH_USER"; then
-  msg_error 'User $SSH_USER already exists.'
+
+if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add sudo user $SSH_USER with SSH access?" 10 58); then
+  ADD_SSH_USER="yes"
 else
-#  echo 'user not found'
-  pct exec $CTID -- /bin/bash -c "adduser $SSH_USER --disabled-password --gecos '' --uid 1000 &>/dev/null"
-  pct exec $CTID -- /bin/bash -c "chpasswd <<<'$SSH_USER:$SSH_PASSWORD'"
-  pct exec $CTID -- /bin/bash -c "usermod -aG sudo $SSH_USER"
-  #echo "Default user added."
+  ADD_SSH_USER="no"
 fi
-msg_ok "Added SSH user $SSH_USER (sudo)"
+echo -e "${DGN}Add SSH User $SSH_USER: ${BGN}$ADD_SSH_USER${CL}"
+
+if [[ "${ADD_SSH_USER}" == "yes" ]]; then
+  if [ -z "$SSH_USER" ] || [ -z "$SSH_PASSWORD" ] ; then
+    msg_error "Missing proxmox-helper-scripts environment variables"
+    add_proxmox_helper_scripts_env "SSH_USER"
+    add_proxmox_helper_scripts_env "SSH_PASSWORD"
+  fi
+  #Add ssh sudo user SSH_USER
+  msg_info "Adding SSH user $SSH_USER (sudo)"
+  if user_exists "$SSH_USER"; then
+    msg_error 'User $SSH_USER already exists.'
+  else
+  #  echo 'user not found'
+    pct exec $CTID -- /bin/bash -c "adduser $SSH_USER --disabled-password --gecos '' --uid 1000 &>/dev/null"
+    pct exec $CTID -- /bin/bash -c "chpasswd <<<'$SSH_USER:$SSH_PASSWORD'"
+    pct exec $CTID -- /bin/bash -c "usermod -aG sudo $SSH_USER"
+    #echo "Default user added."
+  fi
+  msg_ok "Added SSH user $SSH_USER (sudo)"
+fi
 
 
 if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add $SHARE_USER user?" 10 58); then
@@ -181,6 +241,10 @@ echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
 
 
 if [[ "${SHARED_MOUNT}" == "yes" ]]; then
+  if [ -z "$SHARE_USER" ] ; then
+    msg_error "Missing proxmox-helper-scripts environment variables"
+    add_proxmox_helper_scripts_env "SHARE_USER"
+  fi
   msg_info "Mounting shared directory"
   #Add user $SHARE_USER
   if user_exists "$SHARE_USER"; then
@@ -195,7 +259,7 @@ if [[ "${SHARED_MOUNT}" == "yes" ]]; then
     #sleep 3
 
     # Add mount point and user mapping
-	# This assumes that we have a "share" drive mounted on host with directory 'public' (/mnt/pve/share/public) AND that $SHARE_USER user (and group) has been added on host with appropriate access to the "public" directory
+    # This assumes that we have a "share" drive mounted on host with directory 'public' (/mnt/pve/share/public) AND that $SHARE_USER user (and group) has been added on host with appropriate access to the "public" directory
     cat <<EOF >>/etc/pve/lxc/${CTID}.conf
 mp0: /mnt/pve/share/public,mp=/mnt/pve/share
 lxc.idmap: u 0 100000 1001
@@ -222,6 +286,10 @@ fi
 echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
 
 if [[ "${POSTFIX_SAT}" == "yes" ]]; then
+  if [ -z "$DOMAIN" ] ; then
+    msg_error "Missing proxmox-helper-scripts environment variables"
+    add_proxmox_helper_scripts_env "DOMAIN"
+  fi
   msg_info "Configuring Postfix Satellite"
   #Install deb-conf-utils to set parameters
   pct exec $CTID -- /bin/bash -c "apt install -qqy debconf-utils &>/dev/null"
