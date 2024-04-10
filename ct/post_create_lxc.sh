@@ -286,7 +286,7 @@ fi
 echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
 
 if [[ "${POSTFIX_SAT}" == "yes" ]]; then
-  if [ -z {$DOMAIN+x} ]; then
+  if [ -z ${DOMAIN+x} ]; then
     msg_error "Missing proxmox-helper-scripts environment variables"
     add_proxmox_helper_scripts_env "DOMAIN"
   fi
