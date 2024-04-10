@@ -127,7 +127,11 @@ function add_proxmox_helper_scripts_env(){
   #check if first parameter was passed and it's an integer
   if [ $# -ge 1 ] && [ ! -z "$1" ]; then
     PHS_VAR_NAME=$1
-    if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 --title "VALUE" 3>&1 1>&2 2>&3); then
+	DEFAULT_VALUE=""
+	if [ $# -ge 2 ] && [ ! -z "$2" ]; then
+	  DEFAULT_VALUE=$2
+	fi
+    if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 $DEFAULT_VALUE --title "VALUE" 3>&1 1>&2 2>&3); then
       if [ -z "$PHS_VAR_VALUE" ]; then
         PHS_VAR_VALUE=""
       fi
@@ -214,7 +218,7 @@ echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
 if [[ "${ADD_SSH_USER}" == "yes" ]]; then
   if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
     msg_error "Missing proxmox-helper-scripts environment variables"
-    add_proxmox_helper_scripts_env "SSH_USER"
+    add_proxmox_helper_scripts_env "SSH_USER" "admin"
     add_proxmox_helper_scripts_env "SSH_PASSWORD"
   fi
   #Add ssh sudo user SSH_USER
@@ -243,7 +247,7 @@ echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
 if [[ "${SHARED_MOUNT}" == "yes" ]]; then
   if [ -z ${SHARE_USER+x} ]; then
     msg_error "Missing proxmox-helper-scripts environment variables"
-    add_proxmox_helper_scripts_env "SHARE_USER"
+    add_proxmox_helper_scripts_env "SHARE_USER" "share"
   fi
   msg_info "Mounting shared directory"
   #Add user $SHARE_USER
@@ -288,7 +292,7 @@ echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
 if [[ "${POSTFIX_SAT}" == "yes" ]]; then
   if [ -z ${DOMAIN+x} ]; then
     msg_error "Missing proxmox-helper-scripts environment variables"
-    add_proxmox_helper_scripts_env "DOMAIN"
+    add_proxmox_helper_scripts_env "DOMAIN" "example.com"
   fi
   msg_info "Configuring Postfix Satellite"
   #Install deb-conf-utils to set parameters
