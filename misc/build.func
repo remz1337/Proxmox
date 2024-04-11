@@ -186,13 +186,13 @@ echo_default() {
   echo -e "${DGN}Using DNS Search Domain: ${BGN}Host${CL}"
   echo -e "${DGN}Using DNS Server Address: ${BGN}Host${CL}"
   echo -e "${DGN}Using MAC Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Enable Firewall: ${BGN}Yes${CL}"
+  echo -e "${DGN}Enable Firewall: ${BGN}$FW${CL}"
   echo -e "${DGN}Using VLAN Tag: ${BGN}Default${CL}"
   echo -e "${DGN}Enable Root SSH Access: ${BGN}No${CL}"
   echo -e "${DGN}Enable Verbose Mode: ${BGN}No${CL}"
-  echo -e "${DGN}Add common sudo user with SSH access: ${BGN}No${CL}"
-  echo -e "${DGN}Enable Shared Mount: ${BGN}No${CL}"
-  echo -e "${DGN}Configure Postfix Satellite: ${BGN}No${CL}"
+  echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
+  echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
+  echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
   echo -e "${BL}Creating a ${APP} LXC using the above default settings${CL}"
 }
 
