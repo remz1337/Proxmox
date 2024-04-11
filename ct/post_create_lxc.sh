@@ -79,6 +79,7 @@ default_setup() {
   msg_ok "Set up Container"
 }
 
+# This function reads the configuration from the LXC config file
 function parse_config(){
   CONFIG=$(pct config $CTID)
 #  while IFS= read -r line || [[ -n $line ]]; do
@@ -99,6 +100,7 @@ function parse_config(){
   HOSTNAME=$(echo "$CONFIG" | awk '/^hostname/' | cut -d' ' -f2)
 }
 
+# This function checks if a given username exists
 function user_exists(){
 #  pct exec  id "$1" &>/dev/null;
   pct exec $CTID -- /bin/bash -c "id $1 &>/dev/null;"
@@ -107,6 +109,7 @@ function user_exists(){
 # Set a global variable for the PHS environment file
 PVE_ENV="/etc/pve-helper-scripts.conf"
 
+# This function loads the environment file for common configuration in Proxmox-Helper-Scripts
 function read_proxmox_helper_scripts_env(){
   #Check if file exists
   if [ ! -f "$PVE_ENV" ]; then
@@ -123,19 +126,36 @@ function read_proxmox_helper_scripts_env(){
   fi
 }
 
+# This function encrypts a password
+function encrypt_password(){
+  if [ $# -ge 1 ] && [ ! -z "$1" ]; then
+    enc_str=$(openssl passwd -1 ${1})
+    echo "$enc_str"
+  else
+    msg_error "Missing password to encrypt. Pass it as first argument."
+    exit-script
+  fi
+}
+
+# This function adds a variable to the Proxmox-Helper-Scripts config file
 function add_proxmox_helper_scripts_env(){
   #check if first parameter was passed and it's an integer
   if [ $# -ge 1 ] && [ ! -z "$1" ]; then
     PHS_VAR_NAME=$1
-	DEFAULT_VALUE=""
-	if [ $# -ge 2 ] && [ ! -z "$2" ]; then
-	  DEFAULT_VALUE=$2
-	fi
+    DEFAULT_VALUE=""
+    if [ $# -ge 2 ] && [ ! -z "$2" ]; then
+      DEFAULT_VALUE=$2
+    fi
     if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 $DEFAULT_VALUE --title "VALUE" 3>&1 1>&2 2>&3); then
       if [ -z "$PHS_VAR_VALUE" ]; then
-        PHS_VAR_VALUE=""
+        #PHS_VAR_VALUE=""
+        msg_error "Password cannot be empty!"
+        exit-script
       fi
       echo -e "${DGN}Setting Proxmox-Helper-Scripts Envrionment Variable $PHS_VAR_NAME: ${BGN}${PHS_VAR_VALUE}${CL}"
+      if [ $# -ge 3 ] && [ ! -z "$3" ] && [ "$3" == "PASSWORD" ]; then
+        PHS_VAR_VALUE=$(encrypt_password $PHS_VAR_VALUE)
+      fi
       if grep -q "${PHS_VAR_NAME}=.*" "$PVE_ENV"; then
         # code if found
         sed -i 's/${PHS_VAR_NAME}=.*/${PHS_VAR_NAME}=${PHS_VAR_VALUE}/g' "$PVE_ENV"
@@ -148,8 +168,22 @@ function add_proxmox_helper_scripts_env(){
     fi
   else
     msg_error "You need to pass the variable name to set as the first parameter"
+    exit-script
   fi
   read_proxmox_helper_scripts_env
+}
+
+# This function adds an encrypted variable to the Proxmox-Helper-Scripts config file by passing the right arguments to add_proxmox_helper_scripts_env()
+function add_proxmox_helper_scripts_env_password(){
+  if [ $# -ge 2 ] && [ ! -z "$1" ] && [ ! -z "$2" ]; then
+    #PHS_VAR_NAME=$1
+    add_proxmox_helper_scripts_env $1 $2 "PASSWORD"
+  elif [ $# -ge 1 ] && [ ! -z "$1" ]; then
+    add_proxmox_helper_scripts_env $1 "" "PASSWORD"
+  else
+    msg_error "You need to pass the variable name to set as the first parameter"
+    exit-script
+  fi
 }
 
 
@@ -219,7 +253,7 @@ if [[ "${ADD_SSH_USER}" == "yes" ]]; then
   if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
     msg_error "Missing proxmox-helper-scripts environment variables"
     add_proxmox_helper_scripts_env "SSH_USER" "admin"
-    add_proxmox_helper_scripts_env "SSH_PASSWORD"
+    add_proxmox_helper_scripts_env_password "SSH_PASSWORD"
   fi
   #Add ssh sudo user SSH_USER
   msg_info "Adding SSH user $SSH_USER (sudo)"
@@ -228,7 +262,7 @@ if [[ "${ADD_SSH_USER}" == "yes" ]]; then
   else
   #  echo 'user not found'
     pct exec $CTID -- /bin/bash -c "adduser $SSH_USER --disabled-password --gecos '' --uid 1000 &>/dev/null"
-    pct exec $CTID -- /bin/bash -c "chpasswd <<<'$SSH_USER:$SSH_PASSWORD'"
+    pct exec $CTID -- /bin/bash -c "usermod -p ${SSH_PASSWORD} $SSH_USER"
     pct exec $CTID -- /bin/bash -c "usermod -aG sudo $SSH_USER"
     #echo "Default user added."
   fi
