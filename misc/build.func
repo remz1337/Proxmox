@@ -762,20 +762,20 @@ function add_proxmox_helper_scripts_env_password(){
 
 # This function tests all enabled Proxmox-Helper-Scripts environment variable needed to build the container and creates them if missing
 function phs_validate_required_config(){
-  if [[ "${ADD_SSH_USER}" == "yes" ]]; then
+  if [ -z ${ADD_SSH_USER+x} ] && [[ "${ADD_SSH_USER}" == "yes" ]]; then
 	if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
       msg_error "Missing proxmox-helper-scripts environment variables: SSH_USER, SSH_PASSWORD"
       add_proxmox_helper_scripts_env "SSH_USER" "admin"
       add_proxmox_helper_scripts_env_password "SSH_PASSWORD"
     fi
   fi
-  if [[ "${SHARED_MOUNT}" == "yes" ]]; then
+  if [ -z ${SHARED_MOUNT+x} ] && [[ "${SHARED_MOUNT}" == "yes" ]]; then
     if [ -z ${SHARE_USER+x} ]; then
       msg_error "Missing proxmox-helper-scripts environment variable: SHARE_USER"
       add_proxmox_helper_scripts_env "SHARE_USER" "share"
     fi
   fi
-  if [[ "${POSTFIX_SAT}" == "yes" ]]; then
+  if [ -z ${POSTFIX_SAT+x} ] && [[ "${POSTFIX_SAT}" == "yes" ]]; then
 	if [ -z ${DOMAIN+x} ]; then
       msg_error "Missing proxmox-helper-scripts environment variable: DOMAIN"
       add_proxmox_helper_scripts_env "DOMAIN" "example.com"
