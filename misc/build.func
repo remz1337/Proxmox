@@ -491,11 +491,7 @@ advanced_settings() {
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
     ADD_SSH_USER="yes"
-	if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
-      msg_error "Missing proxmox-helper-scripts environment variables: SSH_USER, SSH_PASSWORD"
-      add_proxmox_helper_scripts_env "SSH_USER" "admin"
-      add_proxmox_helper_scripts_env_password "SSH_PASSWORD"
-    fi
+	phs_validate_required_config
   else
     ADD_SSH_USER="no"
   fi
@@ -503,10 +499,7 @@ advanced_settings() {
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
     SHARED_MOUNT="yes"
-	if [ -z ${SHARE_USER+x} ]; then
-      msg_error "Missing proxmox-helper-scripts environment variable: SHARE_USER"
-      add_proxmox_helper_scripts_env "SHARE_USER" "share"
-    fi
+	phs_validate_required_config
   else
     SHARED_MOUNT="no"
   fi
@@ -514,10 +507,7 @@ advanced_settings() {
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $HN LXC?" 10 58); then
     POSTFIX_SAT="yes"
-	if [ -z ${DOMAIN+x} ]; then
-      msg_error "Missing proxmox-helper-scripts environment variable: DOMAIN"
-      add_proxmox_helper_scripts_env "DOMAIN" "example.com"
-    fi
+	phs_validate_required_config
   else
     POSTFIX_SAT="no"
   fi
@@ -640,6 +630,8 @@ build_container() {
   export PHS_ADD_SSH_USER="$ADD_SSH_USER"
   export PHS_SHARED_MOUNT="$SHARED_MOUNT"
   export PHS_POSTFIX_SAT="$POSTFIX_SAT"
+  # Check for missing required environment variables
+  phs_validate_required_config
   # This executes create_lxc.sh and creates the container and .conf file
   bash -c "$(wget -qLO - https://raw.githubusercontent.com/remz1337/Proxmox/remz/ct/create_lxc.sh)" || exit
 
@@ -765,5 +757,28 @@ function add_proxmox_helper_scripts_env_password(){
   else
     msg_error "You need to pass the variable name to set as the first parameter"
     exit-script
+  fi
+}
+
+# This function tests all enabled Proxmox-Helper-Scripts environment variable needed to build the container and creates them if missing
+function phs_validate_required_config(){
+  if [[ "${ADD_SSH_USER}" == "yes" ]]; then
+	if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
+      msg_error "Missing proxmox-helper-scripts environment variables: SSH_USER, SSH_PASSWORD"
+      add_proxmox_helper_scripts_env "SSH_USER" "admin"
+      add_proxmox_helper_scripts_env_password "SSH_PASSWORD"
+    fi
+  fi
+  if [[ "${SHARED_MOUNT}" == "yes" ]]; then
+    if [ -z ${SHARE_USER+x} ]; then
+      msg_error "Missing proxmox-helper-scripts environment variable: SHARE_USER"
+      add_proxmox_helper_scripts_env "SHARE_USER" "share"
+    fi
+  fi
+  if [[ "${POSTFIX_SAT}" == "yes" ]]; then
+	if [ -z ${DOMAIN+x} ]; then
+      msg_error "Missing proxmox-helper-scripts environment variable: DOMAIN"
+      add_proxmox_helper_scripts_env "DOMAIN" "example.com"
+    fi
   fi
 }
