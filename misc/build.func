@@ -512,7 +512,7 @@ advanced_settings() {
   fi
   echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $app LXC?" 10 58); then
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $HN LXC?" 10 58); then
     POSTFIX_SAT="yes"
 	if [ -z ${DOMAIN+x} ]; then
       msg_error "Missing proxmox-helper-scripts environment variable: DOMAIN"
@@ -686,7 +686,8 @@ EOF'
     pct exec "$CTID" -- ash -c "apk add bash >/dev/null"
   fi
   # This executes post_create_lxc.sh for additional configurations (default user, shared mount directory, postfix satellite)
-  bash -c "$(wget -qLO - https://raw.githubusercontent.com/remz1337/Proxmox/remz/ct/post_create_lxc.sh)" || exit
+  #bash -c "$(wget -qLO - https://raw.githubusercontent.com/remz1337/Proxmox/remz/ct/post_create_lxc.sh)" || exit
+  source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/ct/post_create_lxc.sh)
   lxc-attach -n "$CTID" -- bash -c "$(wget -qLO - https://raw.githubusercontent.com/remz1337/Proxmox/remz/install/$var_install.sh)" || exit
 
 }
