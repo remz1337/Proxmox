@@ -160,6 +160,10 @@ base_settings() {
   if [ -z "$var_version" ]; then
     var_version="12"
   fi
+  # Additional settings for post_create_lxc
+  ADD_SSH_USER="no"
+  SHARED_MOUNT="no"
+  POSTFIX_SAT="no"
 }
 
 # This function displays the default values for various settings.
@@ -186,6 +190,9 @@ echo_default() {
   echo -e "${DGN}Using VLAN Tag: ${BGN}Default${CL}"
   echo -e "${DGN}Enable Root SSH Access: ${BGN}No${CL}"
   echo -e "${DGN}Enable Verbose Mode: ${BGN}No${CL}"
+  echo -e "${DGN}Add common sudo user with SSH access: ${BGN}No${CL}"
+  echo -e "${DGN}Enable Shared Mount: ${BGN}No${CL}"
+  echo -e "${DGN}Configure Postfix Satellite: ${BGN}No${CL}"
   echo -e "${BL}Creating a ${APP} LXC using the above default settings${CL}"
 }
 
@@ -482,6 +489,40 @@ advanced_settings() {
     echo -e "${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
   fi
 
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
+    ADD_SSH_USER="yes"
+	if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
+      msg_error "Missing proxmox-helper-scripts environment variables: SSH_USER, SSH_PASSWORD"
+      add_proxmox_helper_scripts_env "SSH_USER" "admin"
+      add_proxmox_helper_scripts_env_password "SSH_PASSWORD"
+    fi
+  else
+    ADD_SSH_USER="no"
+  fi
+  echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
+
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
+    SHARED_MOUNT="yes"
+	if [ -z ${SHARE_USER+x} ]; then
+      msg_error "Missing proxmox-helper-scripts environment variable: SHARE_USER"
+      add_proxmox_helper_scripts_env "SHARE_USER" "share"
+    fi
+  else
+    SHARED_MOUNT="no"
+  fi
+  echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
+
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $app LXC?" 10 58); then
+    POSTFIX_SAT="yes"
+	if [ -z ${DOMAIN+x} ]; then
+      msg_error "Missing proxmox-helper-scripts environment variable: DOMAIN"
+      add_proxmox_helper_scripts_env "DOMAIN" "example.com"
+    fi
+  else
+    POSTFIX_SAT="no"
+  fi
+  echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
+
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
     VERB="yes"
   else
@@ -505,6 +546,7 @@ install_script() {
   root_check
   arch_check
   ssh_check
+  read_proxmox_helper_scripts_env
 
   if systemctl is-active -q ping-instances.service; then
     systemctl -q stop ping-instances.service
@@ -595,6 +637,9 @@ build_container() {
     -unprivileged $CT_TYPE
     $PW
   "
+  export PHS_ADD_SSH_USER="$ADD_SSH_USER"
+  export PHS_SHARED_MOUNT="$SHARED_MOUNT"
+  export PHS_POSTFIX_SAT="$POSTFIX_SAT"
   # This executes create_lxc.sh and creates the container and .conf file
   bash -c "$(wget -qLO - https://raw.githubusercontent.com/remz1337/Proxmox/remz/ct/create_lxc.sh)" || exit
 
@@ -657,5 +702,67 @@ description() {
   </div>"
   if [[ -f /etc/systemd/system/ping-instances.service ]]; then
     systemctl start ping-instances.service
+  fi
+}
+
+# Set a global variable for the PHS environment file
+PVE_ENV="/etc/pve-helper-scripts.conf"
+
+# This function loads the environment file for common configuration in Proxmox-Helper-Scripts
+function read_proxmox_helper_scripts_env(){
+  #Check if file exists
+  if [ ! -f "$PVE_ENV" ]; then
+    msg_info "${BL}Creating Proxmox-Helper-Scripts configuration file.${CL}"
+    touch "$PVE_ENV"
+    chown root:root "$PVE_ENV"
+    chmod 0600 "$PVE_ENV"
+	msg_ok "${BL}Created Proxmox-Helper-Scripts configuration file.${CL}"
+  else
+    source "$PVE_ENV"
+  fi
+}
+
+# This function adds a variable to the Proxmox-Helper-Scripts config file
+function add_proxmox_helper_scripts_env(){
+  #check if first parameter was passed and it's an integer
+  if [ $# -ge 1 ] && [ ! -z "$1" ]; then
+    PHS_VAR_NAME=$1
+    DEFAULT_VALUE=""
+    if [ $# -ge 2 ] && [ ! -z "$2" ]; then
+      DEFAULT_VALUE=$2
+    fi
+    if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 $DEFAULT_VALUE --title "VALUE" 3>&1 1>&2 2>&3); then
+      if [ -z "$PHS_VAR_VALUE" ]; then
+        msg_error "Value cannot be empty!"
+        exit-script
+      fi
+      echo -e "${DGN}Setting Proxmox-Helper-Scripts Envrionment Variable $PHS_VAR_NAME: ${BGN}${PHS_VAR_VALUE}${CL}"
+      if [ $# -ge 3 ] && [ ! -z "$3" ] && [ "$3" == "PASSWORD" ]; then
+        PHS_VAR_VALUE=$(openssl passwd -1 ${PHS_VAR_VALUE})
+      fi
+      if grep -q "${PHS_VAR_NAME}=.*" "$PVE_ENV"; then
+        sed -i "s|${PHS_VAR_NAME}=.*|${PHS_VAR_NAME}='${PHS_VAR_VALUE}'|g" "$PVE_ENV"
+      else
+        echo "${PHS_VAR_NAME}='${PHS_VAR_VALUE}'" >> "$PVE_ENV"
+      fi
+    else
+      exit-script
+    fi
+  else
+    msg_error "You need to pass the variable name to set as the first parameter"
+    exit-script
+  fi
+  read_proxmox_helper_scripts_env
+}
+
+# This function adds an encrypted variable to the Proxmox-Helper-Scripts config file by passing the right arguments to add_proxmox_helper_scripts_env()
+function add_proxmox_helper_scripts_env_password(){
+  if [ $# -ge 2 ] && [ ! -z "$1" ] && [ ! -z "$2" ]; then
+    add_proxmox_helper_scripts_env $1 $2 "PASSWORD"
+  elif [ $# -ge 1 ] && [ ! -z "$1" ]; then
+    add_proxmox_helper_scripts_env $1 "" "PASSWORD"
+  else
+    msg_error "You need to pass the variable name to set as the first parameter"
+    exit-script
   fi
 }

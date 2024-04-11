@@ -102,66 +102,66 @@ function user_exists(){
   pct exec $CTID -- /bin/bash -c "id $1 &>/dev/null;"
 } # silent, it just sets the exit code
 
-# Set a global variable for the PHS environment file
-PVE_ENV="/etc/pve-helper-scripts.conf"
+# # Set a global variable for the PHS environment file
+# PVE_ENV="/etc/pve-helper-scripts.conf"
 
-# This function loads the environment file for common configuration in Proxmox-Helper-Scripts
-function read_proxmox_helper_scripts_env(){
-  #Check if file exists
-  if [ ! -f "$PVE_ENV" ]; then
-    echo -e "${BL}File not found. Creating file...${CL}"
-    touch "$PVE_ENV"
-    chown root:root "$PVE_ENV"
-    chmod 0600 "$PVE_ENV"
-  else
-    source "$PVE_ENV"
-  fi
-}
+# # This function loads the environment file for common configuration in Proxmox-Helper-Scripts
+# function read_proxmox_helper_scripts_env(){
+  # #Check if file exists
+  # if [ ! -f "$PVE_ENV" ]; then
+    # echo -e "${BL}File not found. Creating file...${CL}"
+    # touch "$PVE_ENV"
+    # chown root:root "$PVE_ENV"
+    # chmod 0600 "$PVE_ENV"
+  # else
+    # source "$PVE_ENV"
+  # fi
+# }
 
-# This function adds a variable to the Proxmox-Helper-Scripts config file
-function add_proxmox_helper_scripts_env(){
-  #check if first parameter was passed and it's an integer
-  if [ $# -ge 1 ] && [ ! -z "$1" ]; then
-    PHS_VAR_NAME=$1
-    DEFAULT_VALUE=""
-    if [ $# -ge 2 ] && [ ! -z "$2" ]; then
-      DEFAULT_VALUE=$2
-    fi
-    if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 $DEFAULT_VALUE --title "VALUE" 3>&1 1>&2 2>&3); then
-      if [ -z "$PHS_VAR_VALUE" ]; then
-        msg_error "Value cannot be empty!"
-        exit-script
-      fi
-      echo -e "${DGN}Setting Proxmox-Helper-Scripts Envrionment Variable $PHS_VAR_NAME: ${BGN}${PHS_VAR_VALUE}${CL}"
-      if [ $# -ge 3 ] && [ ! -z "$3" ] && [ "$3" == "PASSWORD" ]; then
-        PHS_VAR_VALUE=$(openssl passwd -1 ${PHS_VAR_VALUE})
-      fi
-      if grep -q "${PHS_VAR_NAME}=.*" "$PVE_ENV"; then
-        sed -i "s|${PHS_VAR_NAME}=.*|${PHS_VAR_NAME}='${PHS_VAR_VALUE}'|g" "$PVE_ENV"
-      else
-        echo "${PHS_VAR_NAME}='${PHS_VAR_VALUE}'" >> "$PVE_ENV"
-      fi
-    else
-      exit-script
-    fi
-  else
-    msg_error "You need to pass the variable name to set as the first parameter"
-    exit-script
-  fi
-  read_proxmox_helper_scripts_env
-}
+# # This function adds a variable to the Proxmox-Helper-Scripts config file
+# function add_proxmox_helper_scripts_env(){
+  # #check if first parameter was passed and it's an integer
+  # if [ $# -ge 1 ] && [ ! -z "$1" ]; then
+    # PHS_VAR_NAME=$1
+    # DEFAULT_VALUE=""
+    # if [ $# -ge 2 ] && [ ! -z "$2" ]; then
+      # DEFAULT_VALUE=$2
+    # fi
+    # if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 $DEFAULT_VALUE --title "VALUE" 3>&1 1>&2 2>&3); then
+      # if [ -z "$PHS_VAR_VALUE" ]; then
+        # msg_error "Value cannot be empty!"
+        # exit-script
+      # fi
+      # echo -e "${DGN}Setting Proxmox-Helper-Scripts Envrionment Variable $PHS_VAR_NAME: ${BGN}${PHS_VAR_VALUE}${CL}"
+      # if [ $# -ge 3 ] && [ ! -z "$3" ] && [ "$3" == "PASSWORD" ]; then
+        # PHS_VAR_VALUE=$(openssl passwd -1 ${PHS_VAR_VALUE})
+      # fi
+      # if grep -q "${PHS_VAR_NAME}=.*" "$PVE_ENV"; then
+        # sed -i "s|${PHS_VAR_NAME}=.*|${PHS_VAR_NAME}='${PHS_VAR_VALUE}'|g" "$PVE_ENV"
+      # else
+        # echo "${PHS_VAR_NAME}='${PHS_VAR_VALUE}'" >> "$PVE_ENV"
+      # fi
+    # else
+      # exit-script
+    # fi
+  # else
+    # msg_error "You need to pass the variable name to set as the first parameter"
+    # exit-script
+  # fi
+  # read_proxmox_helper_scripts_env
+# }
 
-# This function adds an encrypted variable to the Proxmox-Helper-Scripts config file by passing the right arguments to add_proxmox_helper_scripts_env()
-function add_proxmox_helper_scripts_env_password(){
-  if [ $# -ge 2 ] && [ ! -z "$1" ] && [ ! -z "$2" ]; then
-    add_proxmox_helper_scripts_env $1 $2 "PASSWORD"
-  elif [ $# -ge 1 ] && [ ! -z "$1" ]; then
-    add_proxmox_helper_scripts_env $1 "" "PASSWORD"
-  else
-    msg_error "You need to pass the variable name to set as the first parameter"
-    exit-script
-  fi
-}
+# # This function adds an encrypted variable to the Proxmox-Helper-Scripts config file by passing the right arguments to add_proxmox_helper_scripts_env()
+# function add_proxmox_helper_scripts_env_password(){
+  # if [ $# -ge 2 ] && [ ! -z "$1" ] && [ ! -z "$2" ]; then
+    # add_proxmox_helper_scripts_env $1 $2 "PASSWORD"
+  # elif [ $# -ge 1 ] && [ ! -z "$1" ]; then
+    # add_proxmox_helper_scripts_env $1 "" "PASSWORD"
+  # else
+    # msg_error "You need to pass the variable name to set as the first parameter"
+    # exit-script
+  # fi
+# }
 
 echo -e "${BL}Customizing LXC creation${CL}"
 
@@ -170,11 +170,14 @@ echo -e "${BL}Customizing LXC creation${CL}"
 [[ "${PCT_OSTYPE:-}" ]] || exit "You need to set 'PCT_OSTYPE' variable."
 [[ "${PCT_OSVERSION:-}" ]] || exit "You need to set 'PCT_OSVERSION' variable."
 [[ "${app:-}" ]] || exit "You need to set 'app' variable."
+[[ "${PHS_ADD_SSH_USER:-}" ]] || exit "You need to set 'PHS_ADD_SSH_USER' variable."
+[[ "${PHS_SHARED_MOUNT:-}" ]] || exit "You need to set 'PHS_SHARED_MOUNT' variable."
+[[ "${PHS_POSTFIX_SAT:-}" ]] || exit "You need to set 'PHS_POSTFIX_SAT' variable."
 
 
 #Call default setup to have local, timezone and update APT
 default_setup
-read_proxmox_helper_scripts_env
+#read_proxmox_helper_scripts_env
 #parse_config
 
 #Install APT proxy client
@@ -195,19 +198,19 @@ if [ "$PCT_OSTYPE" == "debian" ]; then
   msg_ok "Installed sudo"
 fi
 
-if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
-  ADD_SSH_USER="yes"
-else
-  ADD_SSH_USER="no"
-fi
-echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
+# if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
+  # ADD_SSH_USER="yes"
+# else
+  # ADD_SSH_USER="no"
+# fi
+# echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
 
-if [[ "${ADD_SSH_USER}" == "yes" ]]; then
-  if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
-    msg_error "Missing proxmox-helper-scripts environment variables"
-    add_proxmox_helper_scripts_env "SSH_USER" "admin"
-    add_proxmox_helper_scripts_env_password "SSH_PASSWORD"
-  fi
+if [[ "${PHS_ADD_SSH_USER}" == "yes" ]]; then
+  # if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
+    # msg_error "Missing proxmox-helper-scripts environment variables"
+    # add_proxmox_helper_scripts_env "SSH_USER" "admin"
+    # add_proxmox_helper_scripts_env_password "SSH_PASSWORD"
+  # fi
   #Add ssh sudo user SSH_USER
   msg_info "Adding SSH user $SSH_USER (sudo)"
   if user_exists "$SSH_USER"; then
@@ -220,18 +223,18 @@ if [[ "${ADD_SSH_USER}" == "yes" ]]; then
   msg_ok "Added SSH user $SSH_USER (sudo)"
 fi
 
-if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
-  SHARED_MOUNT="yes"
-else
-  SHARED_MOUNT="no"
-fi
-echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
+# if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
+  # SHARED_MOUNT="yes"
+# else
+  # SHARED_MOUNT="no"
+# fi
+# echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
 
-if [[ "${SHARED_MOUNT}" == "yes" ]]; then
-  if [ -z ${SHARE_USER+x} ]; then
-    msg_error "Missing proxmox-helper-scripts environment variables"
-    add_proxmox_helper_scripts_env "SHARE_USER" "share"
-  fi
+if [[ "${PHS_SHARED_MOUNT}" == "yes" ]]; then
+  # if [ -z ${SHARE_USER+x} ]; then
+    # msg_error "Missing proxmox-helper-scripts environment variables"
+    # add_proxmox_helper_scripts_env "SHARE_USER" "share"
+  # fi
   msg_info "Mounting shared directory"
   #Add user $SHARE_USER
   if user_exists "$SHARE_USER"; then
@@ -258,18 +261,18 @@ EOF
   msg_ok "Rebooted LXC to mount shared directory"
 fi
 
-if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $app LXC?" 10 58); then
-  POSTFIX_SAT="yes"
-else
-  POSTFIX_SAT="no"
-fi
-echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
+# if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $app LXC?" 10 58); then
+  # POSTFIX_SAT="yes"
+# else
+  # POSTFIX_SAT="no"
+# fi
+# echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
 
-if [[ "${POSTFIX_SAT}" == "yes" ]]; then
-  if [ -z ${DOMAIN+x} ]; then
-    msg_error "Missing proxmox-helper-scripts environment variables"
-    add_proxmox_helper_scripts_env "DOMAIN" "example.com"
-  fi
+if [[ "${PHS_POSTFIX_SAT}" == "yes" ]]; then
+  # if [ -z ${DOMAIN+x} ]; then
+    # msg_error "Missing proxmox-helper-scripts environment variables"
+    # add_proxmox_helper_scripts_env "DOMAIN" "example.com"
+  # fi
   msg_info "Configuring Postfix Satellite"
   #Install deb-conf-utils to set parameters
   pct exec $CTID -- /bin/bash -c "apt install -qqy debconf-utils &>/dev/null"
