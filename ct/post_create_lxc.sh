@@ -257,7 +257,7 @@ EOF
 
   msg_info "Rebooting LXC to mount shared directory"
   pct reboot $CTID
-  sleep 3
+  sleep 1
   msg_ok "Rebooted LXC to mount shared directory"
 fi
 
