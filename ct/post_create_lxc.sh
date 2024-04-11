@@ -262,7 +262,7 @@ if [[ "${ADD_SSH_USER}" == "yes" ]]; then
   else
   #  echo 'user not found'
     pct exec $CTID -- /bin/bash -c "adduser $SSH_USER --disabled-password --gecos '' --uid 1000 &>/dev/null"
-    pct exec $CTID -- /bin/bash -c "usermod -p ${SSH_PASSWORD} $SSH_USER"
+    pct exec $CTID -- /bin/bash -c "echo '$SSH_USER:$SSH_PASSWORD' | chpasswd --encrypted"
     pct exec $CTID -- /bin/bash -c "usermod -aG sudo $SSH_USER"
     #echo "Default user added."
   fi
