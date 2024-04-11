@@ -175,7 +175,7 @@ echo -e "${BL}Customizing LXC creation${CL}"
 #Call default setup to have local, timezone and update APT
 default_setup
 read_proxmox_helper_scripts_env
-parse_config
+#parse_config
 
 #Install APT proxy client
 msg_info "Installing APT proxy client"
