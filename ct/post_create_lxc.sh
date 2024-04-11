@@ -76,26 +76,26 @@ default_setup() {
   msg_ok "Set up Container"
 }
 
-# This function reads the configuration from the LXC config file
-function parse_config(){
-  CONFIG=$(pct config $CTID)
-#  while IFS= read -r line || [[ -n $line ]]; do
-#    if [[ $line == cores* ]]; then
-#      CORES=$(echo $line | cut -d ":" -f 2 | xargs)
-#    elif [[ $line == memory* ]]; then
-#      MEM=$(echo $line | cut -d ":" -f 2 | xargs)
-#    elif [[ $line == hostname* ]]; then
-#      HOSTNAME=$(echo $line | cut -d ":" -f 2 | xargs)
-#    elif [[ $line == ostype* ]]; then
-#      OSTYPE=$(echo $line | cut -d ":" -f 2 | xargs)
-#    fi
-#  done < <(printf '%s' "$CONFIG")
+# # This function reads the configuration from the LXC config file
+# function parse_config(){
+  # CONFIG=$(pct config $CTID)
+# #  while IFS= read -r line || [[ -n $line ]]; do
+# #    if [[ $line == cores* ]]; then
+# #      CORES=$(echo $line | cut -d ":" -f 2 | xargs)
+# #    elif [[ $line == memory* ]]; then
+# #      MEM=$(echo $line | cut -d ":" -f 2 | xargs)
+# #    elif [[ $line == hostname* ]]; then
+# #      HOSTNAME=$(echo $line | cut -d ":" -f 2 | xargs)
+# #    elif [[ $line == ostype* ]]; then
+# #      OSTYPE=$(echo $line | cut -d ":" -f 2 | xargs)
+# #    fi
+# #  done < <(printf '%s' "$CONFIG")
 
-  OSTYPE=$(echo "$CONFIG" | awk '/^ostype/' | cut -d' ' -f2)
-  CORES=$(echo "$CONFIG" | awk '/^cores/' | cut -d' ' -f2)
-  MEM=$(echo "$CONFIG" | awk '/^memory/' | cut -d' ' -f2)
-  HOSTNAME=$(echo "$CONFIG" | awk '/^hostname/' | cut -d' ' -f2)
-}
+  # OSTYPE=$(echo "$CONFIG" | awk '/^ostype/' | cut -d' ' -f2)
+  # CORES=$(echo "$CONFIG" | awk '/^cores/' | cut -d' ' -f2)
+  # MEM=$(echo "$CONFIG" | awk '/^memory/' | cut -d' ' -f2)
+  # HOSTNAME=$(echo "$CONFIG" | awk '/^hostname/' | cut -d' ' -f2)
+# }
 
 # This function checks if a given username exists
 function user_exists(){
@@ -169,6 +169,7 @@ echo -e "${BL}Customizing LXC creation${CL}"
 [[ "${CTID:-}" ]] || exit "You need to set 'CTID' variable."
 [[ "${PCT_OSTYPE:-}" ]] || exit "You need to set 'PCT_OSTYPE' variable."
 [[ "${PCT_OSVERSION:-}" ]] || exit "You need to set 'PCT_OSVERSION' variable."
+[[ "${HN:-}" ]] || exit "You need to set 'HN' variable."
 
 
 #Call default setup to have local, timezone and update APT
@@ -257,7 +258,7 @@ EOF
   msg_ok "Rebooted LXC to mount shared directory"
 fi
 
-if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $HOSTNAME LXC?" 10 58); then
+if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $HN LXC?" 10 58); then
   POSTFIX_SAT="yes"
 else
   POSTFIX_SAT="no"
@@ -275,8 +276,8 @@ if [[ "${POSTFIX_SAT}" == "yes" ]]; then
   pct exec $CTID -- /bin/bash -c "systemctl stop postfix"
   pct exec $CTID -- /bin/bash -c "mv /etc/postfix/main.cf /etc/postfix/main.cf.BAK"
   pct exec $CTID -- /bin/bash -c "echo postfix postfix/main_mailer_type        select  Satellite system | debconf-set-selections"
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/destinations    string  $HOSTNAME.localdomain, localhost.localdomain, localhost | debconf-set-selections"
-  pct exec $CTID -- /bin/bash -c "echo postfix postfix/mailname        string  $HOSTNAME.$DOMAIN | debconf-set-selections"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/destinations    string  $HN.localdomain, localhost.localdomain, localhost | debconf-set-selections"
+  pct exec $CTID -- /bin/bash -c "echo postfix postfix/mailname        string  $HN.$DOMAIN | debconf-set-selections"
   #This config assumes that the postfix relay host is already set up in another LXC with hostname "postfix" (using port 255)
   pct exec $CTID -- /bin/bash -c "echo postfix postfix/relayhost       string  [postfix.$DOMAIN]:255 | debconf-set-selections"
   pct exec $CTID -- /bin/bash -c "echo postfix postfix/mynetworks      string  127.0.0.0/8 | debconf-set-selections"
