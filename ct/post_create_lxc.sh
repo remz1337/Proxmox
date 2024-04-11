@@ -158,10 +158,10 @@ function add_proxmox_helper_scripts_env(){
       fi
       if grep -q "${PHS_VAR_NAME}=.*" "$PVE_ENV"; then
         # code if found
-        sed -i "s/${PHS_VAR_NAME}=.*/${PHS_VAR_NAME}=\"${PHS_VAR_VALUE}\"/g" "$PVE_ENV"
+        sed -i "s|${PHS_VAR_NAME}=.*|${PHS_VAR_NAME}='${PHS_VAR_VALUE}'|g" "$PVE_ENV"
       else
         # code if not found
-        echo "${PHS_VAR_NAME}=\"${PHS_VAR_VALUE}\"" >> "$PVE_ENV"
+        echo "${PHS_VAR_NAME}='${PHS_VAR_VALUE}'" >> "$PVE_ENV"
       fi
     else
       exit-script
