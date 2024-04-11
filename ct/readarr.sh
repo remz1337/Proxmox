@@ -50,6 +50,9 @@ function default_settings() {
   VLAN=""
   SSH="no"
   VERB="no"
+  ADD_SSH_USER="yes"
+  SHARED_MOUNT="yes"
+  POSTFIX_SAT="yes"
   echo_default
 }
 
