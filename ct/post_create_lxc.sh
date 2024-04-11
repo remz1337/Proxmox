@@ -127,15 +127,15 @@ function read_proxmox_helper_scripts_env(){
 }
 
 # This function encrypts a password
-function encrypt_password(){
-  if [ $# -ge 1 ] && [ ! -z "$1" ]; then
-    enc_str=$(openssl passwd -1 ${1})
-    echo "$enc_str"
-  else
-    msg_error "Missing password to encrypt. Pass it as first argument."
-    exit-script
-  fi
-}
+#function encrypt_password(){
+#  if [ $# -ge 1 ] && [ ! -z "$1" ]; then
+#    enc_str=$(openssl passwd -1 ${1})
+#    echo "$enc_str"
+#  else
+#    msg_error "Missing password to encrypt. Pass it as first argument."
+#    exit-script
+#  fi
+#}
 
 # This function adds a variable to the Proxmox-Helper-Scripts config file
 function add_proxmox_helper_scripts_env(){
@@ -149,19 +149,19 @@ function add_proxmox_helper_scripts_env(){
     if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 $DEFAULT_VALUE --title "VALUE" 3>&1 1>&2 2>&3); then
       if [ -z "$PHS_VAR_VALUE" ]; then
         #PHS_VAR_VALUE=""
-        msg_error "Password cannot be empty!"
+        msg_error "Value cannot be empty!"
         exit-script
       fi
       echo -e "${DGN}Setting Proxmox-Helper-Scripts Envrionment Variable $PHS_VAR_NAME: ${BGN}${PHS_VAR_VALUE}${CL}"
       if [ $# -ge 3 ] && [ ! -z "$3" ] && [ "$3" == "PASSWORD" ]; then
-        PHS_VAR_VALUE=$(encrypt_password $PHS_VAR_VALUE)
+        PHS_VAR_VALUE=$(openssl passwd -1 ${PHS_VAR_VALUE})
       fi
       if grep -q "${PHS_VAR_NAME}=.*" "$PVE_ENV"; then
         # code if found
-        sed -i 's/${PHS_VAR_NAME}=.*/${PHS_VAR_NAME}=${PHS_VAR_VALUE}/g' "$PVE_ENV"
+        sed -i "s/${PHS_VAR_NAME}=.*/${PHS_VAR_NAME}=\"${PHS_VAR_VALUE}\"/g" "$PVE_ENV"
       else
         # code if not found
-        echo "${PHS_VAR_NAME}=${PHS_VAR_VALUE}" >> "$PVE_ENV"
+        echo "${PHS_VAR_NAME}=\"${PHS_VAR_VALUE}\"" >> "$PVE_ENV"
       fi
     else
       exit-script
