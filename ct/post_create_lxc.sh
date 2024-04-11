@@ -4,9 +4,6 @@
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
-# This sets verbose mode if the global variable is set to "yes"
-# if [ "$VERBOSE" == "yes" ]; then set -x; fi
-
 # This function sets color variables for formatting output in the terminal
 YW=$(echo "\033[33m")
 BL=$(echo "\033[36m")
@@ -102,7 +99,6 @@ function parse_config(){
 
 # This function checks if a given username exists
 function user_exists(){
-#  pct exec  id "$1" &>/dev/null;
   pct exec $CTID -- /bin/bash -c "id $1 &>/dev/null;"
 } # silent, it just sets the exit code
 
@@ -119,23 +115,8 @@ function read_proxmox_helper_scripts_env(){
     chmod 0600 "$PVE_ENV"
   else
     source "$PVE_ENV"
-#    if [ -z "$SSH_USER" ] || [ -z "$SSH_PASSWORD" ] || [ -z "$SHARE_USER" ] || [ -z "$DOMAIN" ]; then
-#      msg_error "Missing proxmox-helper-scripts environment variables"
-#      exit-script
-#    fi
   fi
 }
-
-# This function encrypts a password
-#function encrypt_password(){
-#  if [ $# -ge 1 ] && [ ! -z "$1" ]; then
-#    enc_str=$(openssl passwd -1 ${1})
-#    echo "$enc_str"
-#  else
-#    msg_error "Missing password to encrypt. Pass it as first argument."
-#    exit-script
-#  fi
-#}
 
 # This function adds a variable to the Proxmox-Helper-Scripts config file
 function add_proxmox_helper_scripts_env(){
@@ -148,7 +129,6 @@ function add_proxmox_helper_scripts_env(){
     fi
     if PHS_VAR_VALUE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set value for environment variable $PHS_VAR_NAME" 8 58 $DEFAULT_VALUE --title "VALUE" 3>&1 1>&2 2>&3); then
       if [ -z "$PHS_VAR_VALUE" ]; then
-        #PHS_VAR_VALUE=""
         msg_error "Value cannot be empty!"
         exit-script
       fi
@@ -157,10 +137,8 @@ function add_proxmox_helper_scripts_env(){
         PHS_VAR_VALUE=$(openssl passwd -1 ${PHS_VAR_VALUE})
       fi
       if grep -q "${PHS_VAR_NAME}=.*" "$PVE_ENV"; then
-        # code if found
         sed -i "s|${PHS_VAR_NAME}=.*|${PHS_VAR_NAME}='${PHS_VAR_VALUE}'|g" "$PVE_ENV"
       else
-        # code if not found
         echo "${PHS_VAR_NAME}='${PHS_VAR_VALUE}'" >> "$PVE_ENV"
       fi
     else
@@ -176,7 +154,6 @@ function add_proxmox_helper_scripts_env(){
 # This function adds an encrypted variable to the Proxmox-Helper-Scripts config file by passing the right arguments to add_proxmox_helper_scripts_env()
 function add_proxmox_helper_scripts_env_password(){
   if [ $# -ge 2 ] && [ ! -z "$1" ] && [ ! -z "$2" ]; then
-    #PHS_VAR_NAME=$1
     add_proxmox_helper_scripts_env $1 $2 "PASSWORD"
   elif [ $# -ge 1 ] && [ ! -z "$1" ]; then
     add_proxmox_helper_scripts_env $1 "" "PASSWORD"
@@ -185,7 +162,6 @@ function add_proxmox_helper_scripts_env_password(){
     exit-script
   fi
 }
-
 
 echo -e "${BL}Customizing LXC creation${CL}"
 
@@ -197,30 +173,7 @@ echo -e "${BL}Customizing LXC creation${CL}"
 
 #Call default setup to have local, timezone and update APT
 default_setup
-
-
-###### Need function to read/write environment variables (default user/passwords/domain...)
-#SSH_USER="myuser"
-#SSH_PASSWORD="mypassword" # Use a prompt to save it encrypted, like the admin token for vaultwarden
-#SHARE_USER="shareuser"
-#DOMAIN="mydomain.com"
 read_proxmox_helper_scripts_env
-
-
-#CTID=$1
-
-# if [ ${#CTID} -le 0 ]; then
-  # echo "You need to pass the LXC/VM ID as the first argument."
-  # exit
-# else
-  # parse_config
-  # read -p "Run post install script for $HOSTNAME LXC? [Y/N, Default:Yes] " yn
-  # case $yn in
-    # [Nn]* ) exit;;
-# #    * ) proceed=true;;
-  # esac
-# fi
-
 parse_config
 
 #Install APT proxy client
@@ -241,7 +194,6 @@ if [ "$PCT_OSTYPE" == "debian" ]; then
   msg_ok "Installed sudo"
 fi
 
-
 if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
   ADD_SSH_USER="yes"
 else
@@ -260,15 +212,12 @@ if [[ "${ADD_SSH_USER}" == "yes" ]]; then
   if user_exists "$SSH_USER"; then
     msg_error 'User $SSH_USER already exists.'
   else
-  #  echo 'user not found'
     pct exec $CTID -- /bin/bash -c "adduser $SSH_USER --disabled-password --gecos '' --uid 1000 &>/dev/null"
     pct exec $CTID -- /bin/bash -c "echo '$SSH_USER:$SSH_PASSWORD' | chpasswd --encrypted"
     pct exec $CTID -- /bin/bash -c "usermod -aG sudo $SSH_USER"
-    #echo "Default user added."
   fi
   msg_ok "Added SSH user $SSH_USER (sudo)"
 fi
-
 
 if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
   SHARED_MOUNT="yes"
@@ -276,7 +225,6 @@ else
   SHARED_MOUNT="no"
 fi
 echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
-
 
 if [[ "${SHARED_MOUNT}" == "yes" ]]; then
   if [ -z ${SHARE_USER+x} ]; then
@@ -288,14 +236,7 @@ if [[ "${SHARED_MOUNT}" == "yes" ]]; then
   if user_exists "$SHARE_USER"; then
     msg_error 'User $SHARE_USER already exists.'
   else
-  #  echo 'user not found'
-    pct exec $CTID -- /bin/bash -c "adduser $SHARE_USER --disabled-password --gecos '' --uid 1001 &>/dev/null"
-    echo "User $SHARE_USER added."
-
-    #Shutdown LXC for safety
-    #pct shutdown $CTID
-    #sleep 3
-
+    pct exec $CTID -- /bin/bash -c "adduser $SHARE_USER --disabled-password --no-create-home --gecos '' --uid 1001 &>/dev/null"
     # Add mount point and user mapping
     # This assumes that we have a "share" drive mounted on host with directory 'public' (/mnt/pve/share/public) AND that $SHARE_USER user (and group) has been added on host with appropriate access to the "public" directory
     cat <<EOF >>/etc/pve/lxc/${CTID}.conf
@@ -307,19 +248,14 @@ lxc.idmap: g 1001 1001 1
 lxc.idmap: u 1002 101002 64534
 lxc.idmap: g 1002 101002 64534
 EOF
-
-    #pct start $CTID
-    #sleep 3
   fi
   msg_ok "Mounted shared directory"
 
   msg_info "Rebooting LXC to mount shared directory"
   pct reboot $CTID
   sleep 3
-  msg_ok "Rebooting LXC to mount shared directory"
+  msg_ok "Rebooted LXC to mount shared directory"
 fi
-
-
 
 if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $HOSTNAME LXC?" 10 58); then
   POSTFIX_SAT="yes"
