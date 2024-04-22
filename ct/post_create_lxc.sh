@@ -127,8 +127,8 @@ if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
     check_nvidia_drivers
     gpu_id=$(select_nvidia_gpu)
     gpu_lxc_passthrough $gpu_id
-    spinner &
-    SPINNER_PID=$!
+    #spinner &
+    #SPINNER_PID=$!
     reboot_lxc
   fi
 
@@ -142,9 +142,9 @@ if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
   DOWNLOAD_URL="https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVD_VER}/${EXE_FILE}"
 
   pct exec $CTID -- /bin/bash -c "rm -f NVIDIA-Linux-x86_64-*.run"
-  pct exec $CTID -- /bin/bash -c "wget $DOWNLOAD_URL"
+  pct exec $CTID -- /bin/bash -c "wget -q $DOWNLOAD_URL"
   pct exec $CTID -- /bin/bash -c "apt install -qqy libglvnd-dev libvulkan1 pkg-config &>/dev/null"
-  pct exec $CTID -- /bin/bash -c "bash $EXE_FILE --no-kernel-module --silent"
+  pct exec $CTID -- /bin/bash -c "bash $EXE_FILE --no-kernel-module --silent &>/dev/null"
   pct exec $CTID -- /bin/bash -c "rm -f NVIDIA-Linux-x86_64-*.run"
   msg_ok "Installed Nvidia Drivers"
 fi
