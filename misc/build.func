@@ -674,13 +674,6 @@ EOF
     fi
   fi
 
-  if [ "$NVIDIA_PASSTHROUGH" == "yes" ]; then
-    source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
-    check_nvidia_drivers
-    gpu_id=$(select_nvidia_gpu)
-    gpu_lxc_passthrough $gpu_id
-  fi
-
   # This starts the container and executes <app>-install.sh
   msg_info "Starting LXC Container"
   pct start "$CTID"

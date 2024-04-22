@@ -13,6 +13,13 @@ default_setup() {
   msg_ok "Set up Container"
 }
 
+reboot_lxc(){
+  msg_info "Rebooting LXC to mount shared directory"
+  pct reboot $CTID
+  sleep 1
+  msg_ok "Rebooted LXC to mount shared directory"
+}
+
 # This function checks if a given username exists
 function user_exists(){
   pct exec $CTID -- /bin/bash -c "id $1 &>/dev/null;"
@@ -28,6 +35,7 @@ echo -e "${BL}Customizing LXC creation${CL}"
 [[ "${PHS_ADD_SSH_USER:-}" ]] || exit "You need to set 'PHS_ADD_SSH_USER' variable."
 [[ "${PHS_SHARED_MOUNT:-}" ]] || exit "You need to set 'PHS_SHARED_MOUNT' variable."
 [[ "${PHS_POSTFIX_SAT:-}" ]] || exit "You need to set 'PHS_POSTFIX_SAT' variable."
+[[ "${NVIDIA_PASSTHROUGH:-}" ]] || exit "You need to set 'NVIDIA_PASSTHROUGH' variable."
 
 
 #Call default setup to have local, timezone and update APT
@@ -85,10 +93,7 @@ EOF
   fi
   msg_ok "Mounted shared directory"
 
-  msg_info "Rebooting LXC to mount shared directory"
-  pct reboot $CTID
-  sleep 1
-  msg_ok "Rebooted LXC to mount shared directory"
+  reboot_lxc
 fi
 
 if [[ "${PHS_POSTFIX_SAT}" == "yes" ]]; then
@@ -111,6 +116,34 @@ if [[ "${PHS_POSTFIX_SAT}" == "yes" ]]; then
   pct exec $CTID -- /bin/bash -c "postconf 'smtp_tls_wrappermode = yes'"
   pct exec $CTID -- /bin/bash -c "systemctl restart postfix"
   msg_ok "Configured Postfix Satellite"
+fi
+
+if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
+  msg_info "Installing Nvidia Drivers"
+
+  if [ "$NVIDIA_PASSTHROUGH" == "yes" ]; then
+    source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
+    check_nvidia_drivers
+    gpu_id=$(select_nvidia_gpu)
+    gpu_lxc_passthrough $gpu_id
+	reboot_lxc
+  fi
+
+  if [ -z $NVD_VER ]; then
+    echo "No Nvidia drivers detected on host."
+    exit-script
+  fi
+
+  #DRIVER_VERSION="550.67"
+  EXE_FILE="NVIDIA-Linux-x86_64-${NVD_VER}.run"
+  DOWNLOAD_URL="https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVD_VER}/${EXE_FILE}"
+
+  pct exec $CTID -- /bin/bash -c "rm NVIDIA-Linux-x86_64-*.run"
+  pct exec $CTID -- /bin/bash -c "wget $DOWNLOAD_URL"
+  pct exec $CTID -- /bin/bash -c "apt install -qqy libglvnd-dev libvulkan1 pkg-config &>/dev/null"
+  pct exec $CTID -- /bin/bash -c "bash $EXE_FILE --no-kernel-module --silent"
+  pct exec $CTID -- /bin/bash -c "rm NVIDIA-Linux-x86_64-*.run"
+  msg_ok "Installed Nvidia Drivers"
 fi
 
 msg_ok "Post install script completed."
