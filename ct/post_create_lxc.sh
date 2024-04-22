@@ -14,10 +14,10 @@ default_setup() {
 }
 
 reboot_lxc(){
-  msg_info "Rebooting LXC to mount shared directory"
+  msg_info "Rebooting LXC"
   pct reboot $CTID
   sleep 1
-  msg_ok "Rebooted LXC to mount shared directory"
+  msg_ok "Rebooted LXC"
 }
 
 # This function checks if a given username exists
@@ -123,10 +123,13 @@ if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
 
   if [ "$NVIDIA_PASSTHROUGH" == "yes" ]; then
     source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
+    if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
     check_nvidia_drivers
     gpu_id=$(select_nvidia_gpu)
     gpu_lxc_passthrough $gpu_id
-	reboot_lxc
+    spinner &
+    SPINNER_PID=$!
+    reboot_lxc
   fi
 
   if [ -z $NVD_VER ]; then
@@ -138,11 +141,11 @@ if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
   EXE_FILE="NVIDIA-Linux-x86_64-${NVD_VER}.run"
   DOWNLOAD_URL="https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVD_VER}/${EXE_FILE}"
 
-  pct exec $CTID -- /bin/bash -c "rm NVIDIA-Linux-x86_64-*.run"
+  pct exec $CTID -- /bin/bash -c "rm NVIDIA-Linux-x86_64-*.run 2> /dev/null"
   pct exec $CTID -- /bin/bash -c "wget $DOWNLOAD_URL"
   pct exec $CTID -- /bin/bash -c "apt install -qqy libglvnd-dev libvulkan1 pkg-config &>/dev/null"
   pct exec $CTID -- /bin/bash -c "bash $EXE_FILE --no-kernel-module --silent"
-  pct exec $CTID -- /bin/bash -c "rm NVIDIA-Linux-x86_64-*.run"
+  pct exec $CTID -- /bin/bash -c "rm NVIDIA-Linux-x86_64-*.run 2> /dev/null"
   msg_ok "Installed Nvidia Drivers"
 fi
 
