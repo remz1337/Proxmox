@@ -164,6 +164,7 @@ base_settings() {
   ADD_SSH_USER="no"
   SHARED_MOUNT="no"
   POSTFIX_SAT="no"
+  NVIDIA_PASSTHROUGH="no"
 }
 
 # This function displays the default values for various settings.
@@ -193,6 +194,7 @@ echo_default() {
   echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
   echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
   echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
+  echo -e "${DGN}Passthrough Nvidia GPU: ${BGN}$NVIDIA_PASSTHROUGH${CL}"
   echo -e "${BL}Creating a ${APP} LXC using the above default settings${CL}"
 }
 
@@ -491,7 +493,7 @@ advanced_settings() {
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
     ADD_SSH_USER="yes"
-	phs_validate_required_config
+    phs_validate_required_config
   else
     ADD_SSH_USER="no"
   fi
@@ -499,7 +501,7 @@ advanced_settings() {
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
     SHARED_MOUNT="yes"
-	phs_validate_required_config
+    phs_validate_required_config
   else
     SHARED_MOUNT="no"
   fi
@@ -507,11 +509,18 @@ advanced_settings() {
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $HN LXC?" 10 58); then
     POSTFIX_SAT="yes"
-	phs_validate_required_config
+    phs_validate_required_config
   else
     POSTFIX_SAT="no"
   fi
   echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
+
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Nvidia GPU Passthrough" --yesno "Passthrough an Nvidia GPU?" 10 58); then
+    NVIDIA_PASSTHROUGH="yes"
+  else
+    NVIDIA_PASSTHROUGH="no"
+  fi
+  echo -e "${DGN}Nvidia GPU Passthrough: ${BGN}$NVIDIA_PASSTHROUGH${CL}"
 
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
     VERB="yes"
@@ -665,6 +674,13 @@ EOF
     fi
   fi
 
+  if [ "$NVIDIA_PASSTHROUGH" == "yes" ]; then
+    source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
+    check_nvidia_drivers
+    gpu_id=$(select_nvidia_gpu)
+    gpu_lxc_passthrough $gpu_id
+  fi
+
   # This starts the container and executes <app>-install.sh
   msg_info "Starting LXC Container"
   pct start "$CTID"
@@ -709,7 +725,7 @@ function read_proxmox_helper_scripts_env(){
     touch "$PVE_ENV"
     chown root:root "$PVE_ENV"
     chmod 0600 "$PVE_ENV"
-	msg_ok "${BL}Created Proxmox-Helper-Scripts configuration file.${CL}"
+    msg_ok "${BL}Created Proxmox-Helper-Scripts configuration file.${CL}"
   else
     source "$PVE_ENV"
   fi
@@ -763,7 +779,7 @@ function add_proxmox_helper_scripts_env_password(){
 # This function tests all enabled Proxmox-Helper-Scripts environment variable needed to build the container and creates them if missing
 function phs_validate_required_config(){
   if [ ! -z ${ADD_SSH_USER+x} ] && [[ "${ADD_SSH_USER}" == "yes" ]]; then
-	if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
+    if [ -z ${SSH_USER+x} ] || [ -z ${SSH_PASSWORD+x} ]; then
       msg_error "Missing proxmox-helper-scripts environment variables: SSH_USER, SSH_PASSWORD"
       add_proxmox_helper_scripts_env "SSH_USER" "admin"
       add_proxmox_helper_scripts_env_password "SSH_PASSWORD"
@@ -776,7 +792,7 @@ function phs_validate_required_config(){
     fi
   fi
   if [ ! -z ${POSTFIX_SAT+x} ] && [[ "${POSTFIX_SAT}" == "yes" ]]; then
-	if [ -z ${DOMAIN+x} ]; then
+    if [ -z ${DOMAIN+x} ]; then
       msg_error "Missing proxmox-helper-scripts environment variable: DOMAIN"
       add_proxmox_helper_scripts_env "DOMAIN" "example.com"
     fi
