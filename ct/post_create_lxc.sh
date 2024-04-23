@@ -119,24 +119,21 @@ if [[ "${PHS_POSTFIX_SAT}" == "yes" ]]; then
 fi
 
 if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
-  msg_info "Installing Nvidia Drivers"
-
-  if [ "$NVIDIA_PASSTHROUGH" == "yes" ]; then
-    source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
-    if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
-    check_nvidia_drivers
-    gpu_id=$(select_nvidia_gpu)
-    gpu_lxc_passthrough $gpu_id
-    #spinner &
-    #SPINNER_PID=$!
-    reboot_lxc
-  fi
+  source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
+  if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
+  check_nvidia_drivers
+  gpu_id=$(select_nvidia_gpu)
+  gpu_lxc_passthrough $gpu_id
+  #spinner &
+  #SPINNER_PID=$!
+  reboot_lxc
 
   if [ -z $NVD_VER ]; then
     echo "No Nvidia drivers detected on host."
     exit-script
   fi
 
+  msg_info "Installing Nvidia Drivers"
   #DRIVER_VERSION="550.67"
   EXE_FILE="NVIDIA-Linux-x86_64-${NVD_VER}.run"
   DOWNLOAD_URL="https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVD_VER}/${EXE_FILE}"
