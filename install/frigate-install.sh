@@ -48,6 +48,117 @@ if [[ "$CTTYPE" == "0" ]]; then
   msg_ok "Set Up Hardware Acceleration"
 fi
 
+source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
+check_nvidia_drivers
+if [ ! -z $NVD_VER ]; then
+  echo -e "Nvidia drivers detected"
+  msg_info "Installing Nvidia Dependencies"
+
+  #apt install build-essential software-properties-common python3-pip python-is-python3
+  #apt install nvidia-cuda-toolkit
+
+  #Download CUDA (for Debian 11 runfile)
+  #https://developer.nvidia.com/cuda-downloads
+  #wget https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux.run
+
+  #Install CUDA (Uncheck Driver installation if already install, but make sure versions are compatible)
+  #Need about 15Gb of free space
+  #mkdir -p /tmp/nvidia/cuda
+  #cd /tmp/nvidia
+  #wget -q https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux.run
+  #sh cuda_12.2.2_535.104.05_linux.run --extract=/tmp/nvidia/cuda
+  #cd /tmp/nvidia/cuda
+  #./cuda-linux64-rel-7.5.18-19867135.run
+
+  os=""
+  if [ $PCT_OSTYPE == "debian" ]; then
+    os="debian$PCT_OSVERSION"
+  elif [ $PCT_OSTYPE == "ubuntu" ]; then
+    os_ver=$(echo "$var_version" | sed 's|\.||g')
+    os="ubuntu$os_ver"
+  fi
+
+  check_cuda_version
+  TARGET_CUDA_VER=$(echo $NVD_VER_CUDA | sed 's|\.|-|g')
+
+  apt install -y gnupg
+  apt-key del 7fa2af80
+  wget -q https://developer.download.nvidia.com/compute/cuda/repos/${os}/x86_64/cuda-keyring_1.1-1_all.deb
+  dpkg -i cuda-keyring_1.1-1_all.deb
+  rm cuda-keyring_1.1-1_all.deb
+  apt update
+  #apt install cuda-toolkit-12-4
+  apt install -qqy cuda-toolkit-${TARGET_CUDA_VER}
+
+  apt install -qqy cudnn-cuda-${NVD_MAJOR_CUDA}
+
+  msg_ok "Installed Nvidia Dependencies"
+
+  msg_info "Installing TensorRT"
+
+  mkdir -p /tensorrt
+  cd /tensorrt
+
+  trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
+  TRT_VER=$(echo $trt_url | sed "s|.*tensorrt/||g" | sed "s|/tars.*||g")
+
+
+  #os="ubuntu2204"
+  #tag="9.3.0-cuda-12.4"
+  #trt_tag="9.3.0"
+
+  #wget -q https://developer.download.nvidia.com/compute/cuda/repos/${os}/x86_64/cuda-keyring_1.1-1_all.deb
+
+  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/local_repo/nv-tensorrt-local-repo-${os}-10.0.0-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb
+  #wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${trt_tag}/local_repo/nv-tensorrt-local-repo-${os}-${trt_tag}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb
+  #wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.0-cuda-12.4_1.0-1_amd64.deb
+
+  #sudo dpkg -i nv-tensorrt-local-repo-${os}-${tag}_1.0-1_amd64.deb
+  #sudo cp /var/nv-tensorrt-local-repo-${os}-${tag}/*-keyring.gpg /usr/share/keyrings/
+  #sudo apt-get update
+
+  #wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${trt_tag}/tars/TensorRT-10.0.0.6.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz
+
+  wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
+  tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
+  rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
+
+  #export LD_LIBRARY_PATH=<TensorRT-${version}/lib>:$LD_LIBRARY_PATH
+
+  #python3 -m pip install tensorrt-*-cp3x-none-linux_x86_64.whl
+
+  ####### ADD THIS TO BASHRC
+  #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/tensorrt/TensorRT-8.6.1.6/lib
+  echo "PATH=/usr/local/cuda/bin${PATH:+:${PATH}}"  >> /etc/bash.bashrc
+  echo "LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> /etc/bash.bashrc
+
+  #export CUDA_HOME=/usr/local/cuda
+  #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda-12.2/targets/x86_64-linux/lib:/tensorrt/TensorRT-8.6.1.6/lib
+  #export PATH=$PATH:$CUDA_HOME/bin
+
+  source /etc/bash.bashrc
+
+  cd /tensorrt/python
+  apt install -qqy python3
+
+  PYTHON_VER=$(python3 --version | sed "s|.* ||g" | sed "s|\.||g" | sed "s|.$||")
+
+  python3 -m pip install tensorrt-*-cp${PYTHON_VER}-none-linux_x86_64.whl
+
+  #cd ../uff
+  #python3 -m pip install uff-0.6.9-py2.py3-none-any.whl
+
+  #cd ../graphsurgeon
+  #python3 -m pip install graphsurgeon-0.4.6-py2.py3-none-any.whl
+
+  cd ../onnx_graphsurgeon
+  #python3 -m pip install onnx_graphsurgeon-0.3.12-py2.py3-none-any.whl
+  #python3 -m pip install onnx_graphsurgeon-0.5.0-py2.py3-none-any.whl
+  python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
+
+  msg_ok "Installed TensorRT"
+fi
+
 RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d '"' -f 4)
 msg_info "Installing Frigate $RELEASE (Perseverance)"
 cd ~
@@ -97,7 +208,88 @@ sed -i -e 's/^kvm:x:104:$/render:x:104:root,frigate/' -e 's/^render:x:105:root$/
 echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
 msg_ok "Installed Frigate $RELEASE"
 
-if grep -q -o -m1 'avx[^ ]*' /proc/cpuinfo; then
+if [ ! -z $NVD_VER ]; then
+  msg_info "Installing TensorRT Object Detection Model (Resilience)"
+  ################ BUILDING TENSORRT
+  pip3 wheel --wheel-dir=/trt-wheels -r /opt/frigate/docker/tensorrt/requirements-amd64.txt
+  pip3 install -U /trt-wheels/*.whl
+  #ln -s libnvrtc.so.11.2 /usr/local/lib/python3.9/dist-packages/nvidia/cuda_nvrtc/lib/libnvrtc.so
+  ldconfig
+  #pip3 install -U /trt-wheels/*.whl
+
+  cp -a /opt/frigate/docker/tensorrt/detector/rootfs/. /
+
+  echo "Depoloying Frigate detector models running on Nvidia GPU"
+  echo "Make sure CUDA, cuDNN and TensorRT are already installed (with updated LD_LIBRARY_PATH)"
+
+  ### Install TensorRT detector (using Nvidia GPU)
+  # Avoid "LD_LIBRARY_PATH: unbound variable" by initializing the variable
+  #export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+
+  ################################# THIS IS OUTDATED, FRIGATE v0.13 HAS A S6 RUN SCRIPT TO BUILD TENSORRT DEMOS
+  #mkdir -p /tensorrt_models
+  #cd /tensorrt_models
+  #wget https://github.com/blakeblackshear/frigate/raw/master/docker/tensorrt_models.sh
+  #chmod +x tensorrt_models.sh
+  #######################################################################
+
+  mkdir -p /usr/local/src/tensorrt_demos
+  cd /usr/local/src
+
+  #### Need to adjust the tensorrt_demos files to replace TensorRT include path (it's hardcoded to v7 installed in /usr/local)
+  ## /tensorrt_demos/plugins/Makefile --> change INCS and LIBS paths
+
+  ######## MAKE SOME EDITS TO UPDATE TENSORRT PATHS
+  #Create script to fix hardcoded TensorRT paths
+  #fix_tensorrt="$(cat << EOF
+  ##!/bin/bash
+  #sed -i 's/\/usr\/local\/TensorRT-7.1.3.4/\/tensorrt\/TensorRT-8.6.1.6/g' /usr/local/src/tensorrt_demos/plugins/Makefile
+  #EOF
+  #)"
+
+  fix_tensorrt="$(cat << EOF
+#!/bin/bash
+sed -i 's|/usr/local/TensorRT-.*/|/tensorrt/|g' /usr/local/src/tensorrt_demos/plugins/Makefile
+EOF
+)"
+
+  #echo "${fix_tensorrt}" > /usr/local/src/tensorrt_demos/fix_tensorrt.sh
+  echo "${fix_tensorrt}" > /opt/frigate/fix_tensorrt.sh
+
+  #insert after this line :git clone --depth 1 https://github.com/yeahme49/tensorrt_demos.git /tensorrt_demos
+  #sed -i '18 i bash \/tensorrt_models\/fix_tensorrt.sh' tensorrt_models.sh
+  sed -i '9 i bash \/opt\/frigate\/fix_tensorrt.sh' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
+
+  #apt install python and g++
+  apt install -qqy python-is-python3 g++
+  /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
+
+  ### NEED TO BUILD THE TRT MODELS
+  cd /opt/frigate
+  export YOLO_MODELS="yolov4-tiny-288,yolov4-tiny-416,yolov7-tiny-416"
+  export TRT_VER="$TRT_VER"
+  bash /opt/frigate/docker/tensorrt/detector/rootfs/etc/s6-overlay/s6-rc.d/trt-model-prepare/run
+
+  cat <<EOF >>/config/config.yml
+ffmpeg:
+  hwaccel_args: preset-nvidia-h264
+  output_args:
+    record: preset-record-generic-audio-aac
+
+detectors:
+  tensorrt:
+    type: tensorrt
+#    device: 0
+
+model:
+  path: /config/model_cache/tensorrt/${TRT_VER}/yolov7-tiny-416.trt
+  input_tensor: nchw
+  input_pixel_format: rgb
+  width: 416
+  height: 416
+EOF
+  msg_ok "Installed TensorRT Object Detection Model (Resilience)"
+elif grep -q -o -m1 'avx[^ ]*' /proc/cpuinfo; then
   echo -e "AVX support detected"
   msg_info "Installing Openvino Object Detection Model (Resilience)"
   $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt
