@@ -20,7 +20,7 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Frigate"
-var_disk="20"
+var_disk="40"
 var_cpu="4"
 var_ram="4096"
 var_os="debian"
