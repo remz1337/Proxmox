@@ -24,6 +24,19 @@ check_nvidia_drivers() {
   echo "Nvidia drivers found:$NVD_VER"
 }
 
+check_cuda_version(){
+  NVD_VER_CUDA=$(nvidia-smi --version | grep CUDA | cut -d ":" -f 2)
+  NVD_MAJOR_CUDA=${NVD_VER_CUDA%%.*}
+
+  if [ $NVD_MAJOR_CUDA -lt 11 ]; then
+    echo "Old CUDA drivers detected: $NVD_VER_CUDA"
+    echo "Ensure you have the latest drivers installed (>500)"
+    exit-script
+  fi
+
+  echo "Nvidia CUDA drivers found:$NVD_VER_CUDA"
+}
+
 # This function lists the available Nvidia GPUs and allows the user to select one
 select_nvidia_gpu() {
   #### First, select from available Nvidia GPUs
