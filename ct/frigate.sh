@@ -48,6 +48,7 @@ function default_settings() {
   NS=""
   MAC=""
   FW=1
+  NVIDIA_PASSTHROUGH="yes"
   VLAN=""
   SSH="no"
   VERB="no"
