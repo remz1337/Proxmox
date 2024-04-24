@@ -105,9 +105,8 @@ if [ ! -z $NVD_VER ]; then
   fi
 
   #apt install cuda-toolkit-12-4
-  apt install -qqy cuda-toolkit-${TARGET_CUDA_VER}
-
-  apt install -qqy cudnn-cuda-${NVD_MAJOR_CUDA}
+  apt install -qqy "cuda-toolkit-$TARGET_CUDA_VER"
+  apt install -qqy "cudnn-cuda-$NVD_MAJOR_CUDA"
 
   msg_ok "Installed Nvidia Dependencies"
 
