@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Copyright (c) 2021-2024 tteck
-# Authors: tteck (tteckster)
+# Author: tteck (tteckster)
+# Co-Author: remz1337
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
@@ -53,23 +54,6 @@ check_nvidia_drivers
 if [ ! -z $NVD_VER ]; then
   echo -e "Nvidia drivers detected"
   msg_info "Installing Nvidia Dependencies"
-
-  #apt install build-essential software-properties-common python3-pip python-is-python3
-  #apt install nvidia-cuda-toolkit
-
-  #Download CUDA (for Debian 11 runfile)
-  #https://developer.nvidia.com/cuda-downloads
-  #wget https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux.run
-
-  #Install CUDA (Uncheck Driver installation if already install, but make sure versions are compatible)
-  #Need about 15Gb of free space
-  #mkdir -p /tmp/nvidia/cuda
-  #cd /tmp/nvidia
-  #wget -q https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda_12.2.2_535.104.05_linux.run
-  #sh cuda_12.2.2_535.104.05_linux.run --extract=/tmp/nvidia/cuda
-  #cd /tmp/nvidia/cuda
-  #./cuda-linux64-rel-7.5.18-19867135.run
-
   os=""
   if [ $PCT_OSTYPE == "debian" ]; then
     os="debian$PCT_OSVERSION"
@@ -77,101 +61,40 @@ if [ ! -z $NVD_VER ]; then
     os_ver=$(echo "$var_version" | sed 's|\.||g')
     os="ubuntu$os_ver"
   fi
-
   check_cuda_version
   TARGET_CUDA_VER=$(echo $NVD_VER_CUDA | sed 's|\.|-|g')
-
-  apt install -y gnupg
-  apt-key del 7fa2af80
+  $STD apt install -y gnupg
+  $STD apt-key del 7fa2af80
   wget -q https://developer.download.nvidia.com/compute/cuda/repos/${os}/x86_64/cuda-keyring_1.1-1_all.deb
-  dpkg -i cuda-keyring_1.1-1_all.deb
+  $STD dpkg -i cuda-keyring_1.1-1_all.deb
   rm cuda-keyring_1.1-1_all.deb
-  apt update
-
-  #Cache Nvidia tools with APT Cacher (if APT proxy is configured)
-  #squid-deb-proxy-->/etc/apt/apt.conf.d/30autoproxy
-  #auto-apt-proxy-->/etc/apt/apt.conf.d/auto-apt-proxy.conf
-  #Tteck manual-->/etc/apt/apt.conf.d/00aptproxy
-  #Look in files for "Acquire::http::Proxy"
+  $STD apt update
   if grep -qR "Acquire::http::Proxy" /etc/apt/apt.conf.d/ && [ -f "/etc/apt/sources.list.d/cuda-${os}-x86_64.list" ]; then
-    #deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/ /
-    #deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] http://HTTPS///developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/ /
-
-    #find /etc/apt/sources.list /etc/apt/sources.list.d/ -type f -exec sed -Ei 's!https://!'${LOCAL_APT_CACHE_URL}'/HTTPS///!g' {} \;
-    #sed -Ei 's|https://|'${LOCAL_APT_CACHE_URL}'/HTTPS///|g' /etc/apt/sources.list.d/cuda-${os}-x86_64.list
-
     sed -i "s|https://developer|http://HTTPS///developer|g" /etc/apt/sources.list.d/cuda-${os}-x86_64.list
-    apt update
+    $STD apt update
   fi
-
-  #apt install cuda-toolkit-12-4
-  apt install -qqy "cuda-toolkit-$TARGET_CUDA_VER"
-  apt install -qqy "cudnn-cuda-$NVD_MAJOR_CUDA"
-
+  $STD apt install -qqy "cuda-toolkit-$TARGET_CUDA_VER"
+  $STD apt install -qqy "cudnn-cuda-$NVD_MAJOR_CUDA"
   msg_ok "Installed Nvidia Dependencies"
 
   msg_info "Installing TensorRT"
-
   mkdir -p /tensorrt
   cd /tensorrt
-
   trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
   TRT_VER=$(echo $trt_url | sed "s|.*tensorrt/||g" | sed "s|/tars.*||g")
-
-
-  #os="ubuntu2204"
-  #tag="9.3.0-cuda-12.4"
-  #trt_tag="9.3.0"
-
-  #wget -q https://developer.download.nvidia.com/compute/cuda/repos/${os}/x86_64/cuda-keyring_1.1-1_all.deb
-
-  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/local_repo/nv-tensorrt-local-repo-${os}-10.0.0-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb
-  #wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${trt_tag}/local_repo/nv-tensorrt-local-repo-${os}-${trt_tag}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb
-  #wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.0-cuda-12.4_1.0-1_amd64.deb
-
-  #sudo dpkg -i nv-tensorrt-local-repo-${os}-${tag}_1.0-1_amd64.deb
-  #sudo cp /var/nv-tensorrt-local-repo-${os}-${tag}/*-keyring.gpg /usr/share/keyrings/
-  #sudo apt-get update
-
-  #wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${trt_tag}/tars/TensorRT-10.0.0.6.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz
-
   wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
-  tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
+  $STD tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
   rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
-
-  #export LD_LIBRARY_PATH=<TensorRT-${version}/lib>:$LD_LIBRARY_PATH
-
-  #python3 -m pip install tensorrt-*-cp3x-none-linux_x86_64.whl
-
-  ####### ADD THIS TO BASHRC
-  #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/tensorrt/TensorRT-8.6.1.6/lib
-  echo "PATH=/usr/local/cuda/bin${PATH:+:${PATH}}"  >> /etc/bash.bashrc
-  echo "LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> /etc/bash.bashrc
-
-  #export CUDA_HOME=/usr/local/cuda
-  #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda-12.2/targets/x86_64-linux/lib:/tensorrt/TensorRT-8.6.1.6/lib
-  #export PATH=$PATH:$CUDA_HOME/bin
-
-  source /etc/bash.bashrc
-
+  export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
+  export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+  echo "PATH=${PATH}"  >> /etc/bash.bashrc
+  echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
   cd /tensorrt/python
-  apt install -qqy python3
-
+  $STD apt install -qqy python3
   PYTHON_VER=$(python3 --version | sed "s|.* ||g" | sed "s|\.||g" | sed "s|.$||")
-
-  python3 -m pip install tensorrt-*-cp${PYTHON_VER}-none-linux_x86_64.whl
-
-  #cd ../uff
-  #python3 -m pip install uff-0.6.9-py2.py3-none-any.whl
-
-  #cd ../graphsurgeon
-  #python3 -m pip install graphsurgeon-0.4.6-py2.py3-none-any.whl
-
+  $STD python3 -m pip install tensorrt-*-cp${PYTHON_VER}-none-linux_x86_64.whl
   cd ../onnx_graphsurgeon
-  #python3 -m pip install onnx_graphsurgeon-0.3.12-py2.py3-none-any.whl
-  #python3 -m pip install onnx_graphsurgeon-0.5.0-py2.py3-none-any.whl
-  python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
-
+  $STD python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
   msg_ok "Installed TensorRT"
 fi
 
