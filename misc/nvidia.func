@@ -25,7 +25,7 @@ check_nvidia_drivers() {
 }
 
 check_cuda_version(){
-  NVD_VER_CUDA=$(nvidia-smi --version | grep CUDA | cut -d ":" -f 2)
+  NVD_VER_CUDA=$(nvidia-smi --version | grep CUDA | cut -d ":" -f 2 | sed "s| ||g")
   NVD_MAJOR_CUDA=${NVD_VER_CUDA%%.*}
 
   if [ $NVD_MAJOR_CUDA -lt 11 ]; then
