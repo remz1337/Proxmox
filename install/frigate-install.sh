@@ -87,6 +87,23 @@ if [ ! -z $NVD_VER ]; then
   dpkg -i cuda-keyring_1.1-1_all.deb
   rm cuda-keyring_1.1-1_all.deb
   apt update
+
+  #Cache Nvidia tools with APT Cacher (if APT proxy is configured)
+  #squid-deb-proxy-->/etc/apt/apt.conf.d/30autoproxy
+  #auto-apt-proxy-->/etc/apt/apt.conf.d/auto-apt-proxy.conf
+  #Tteck manual-->/etc/apt/apt.conf.d/00aptproxy
+  #Look in files for "Acquire::http::Proxy"
+  if grep -qR "Acquire::http::Proxy" /etc/apt/apt.conf.d/ && [ -f "/etc/apt/sources.list.d/cuda-${os}-x86_64.list" ]; then
+    #deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/ /
+    #deb [signed-by=/usr/share/keyrings/cuda-archive-keyring.gpg] http://HTTPS///developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/ /
+
+    #find /etc/apt/sources.list /etc/apt/sources.list.d/ -type f -exec sed -Ei 's!https://!'${LOCAL_APT_CACHE_URL}'/HTTPS///!g' {} \;
+    #sed -Ei 's|https://|'${LOCAL_APT_CACHE_URL}'/HTTPS///|g' /etc/apt/sources.list.d/cuda-${os}-x86_64.list
+
+    sed -i "s|https://developer|http://HTTPS///developer|g" /etc/apt/sources.list.d/cuda-${os}-x86_64.list
+    apt update
+  fi
+
   #apt install cuda-toolkit-12-4
   apt install -qqy cuda-toolkit-${TARGET_CUDA_VER}
 
