@@ -198,6 +198,7 @@ EOF
   #insert after this line :git clone --depth 1 https://github.com/yeahme49/tensorrt_demos.git /tensorrt_demos
   #sed -i '18 i bash \/tensorrt_models\/fix_tensorrt.sh' tensorrt_models.sh
   sed -i '9 i bash \/opt\/frigate\/fix_tensorrt.sh' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
+  sed -i '21 s|.|#&|' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
 
   #apt install python and g++
   apt install -qqy python-is-python3 g++
