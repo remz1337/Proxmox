@@ -49,6 +49,56 @@ if [[ "$CTTYPE" == "0" ]]; then
   msg_ok "Set Up Hardware Acceleration"
 fi
 
+RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d '"' -f 4)
+msg_info "Installing Frigate $RELEASE (Perseverance)"
+cd ~
+mkdir -p /opt/frigate/models
+wget -q https://github.com/blakeblackshear/frigate/archive/refs/tags/${RELEASE}.tar.gz -O frigate.tar.gz
+tar -xzf frigate.tar.gz -C /opt/frigate --strip-components 1
+rm -rf frigate.tar.gz
+cd /opt/frigate
+$STD pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-wheels.txt
+cp -a /opt/frigate/docker/main/rootfs/. /
+export TARGETARCH="amd64"
+echo 'libc6 libraries/restart-without-asking boolean true' | debconf-set-selections
+$STD /opt/frigate/docker/main/install_deps.sh
+$STD apt update
+$STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
+$STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
+$STD pip3 install -U /wheels/*.whl
+ldconfig
+$STD pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
+$STD /opt/frigate/.devcontainer/initialize.sh
+$STD make version
+cd /opt/frigate/web
+$STD npm install
+$STD npm run build
+cp -r /opt/frigate/web/dist/* /opt/frigate/web/
+cp -r /opt/frigate/config/. /config
+sed -i '/^s6-svc -O \.$/s/^/#/' /opt/frigate/docker/main/rootfs/etc/s6-overlay/s6-rc.d/frigate/run
+cat <<EOF >/config/config.yml
+mqtt:
+  enabled: false
+cameras:
+  test:
+    ffmpeg:
+      #hwaccel_args: preset-vaapi
+      inputs:
+        - path: /media/frigate/person-bicycle-car-detection.mp4
+          input_args: -re -stream_loop -1 -fflags +genpts
+          roles:
+            - detect
+            - rtmp
+    detect:
+      height: 1080
+      width: 1920
+      fps: 5
+EOF
+ln -sf /config/config.yml /opt/frigate/config/config.yml
+sed -i -e 's/^kvm:x:104:$/render:x:104:root,frigate/' -e 's/^render:x:105:root$/kvm:x:105:/' /etc/group
+echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
+msg_ok "Installed Frigate $RELEASE"
+
 source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
 check_nvidia_drivers
 if [ ! -z $NVD_VER ]; then
@@ -96,58 +146,7 @@ if [ ! -z $NVD_VER ]; then
   cd ../onnx_graphsurgeon
   $STD python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
   msg_ok "Installed TensorRT"
-fi
 
-RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d '"' -f 4)
-msg_info "Installing Frigate $RELEASE (Perseverance)"
-cd ~
-mkdir -p /opt/frigate/models
-wget -q https://github.com/blakeblackshear/frigate/archive/refs/tags/${RELEASE}.tar.gz -O frigate.tar.gz
-tar -xzf frigate.tar.gz -C /opt/frigate --strip-components 1
-rm -rf frigate.tar.gz
-cd /opt/frigate
-$STD pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-wheels.txt
-cp -a /opt/frigate/docker/main/rootfs/. /
-export TARGETARCH="amd64"
-echo 'libc6 libraries/restart-without-asking boolean true' | debconf-set-selections
-$STD /opt/frigate/docker/main/install_deps.sh
-$STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
-$STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffprobe /usr/local/bin/ffprobe
-$STD pip3 install -U /wheels/*.whl
-ldconfig
-$STD pip3 install -r /opt/frigate/docker/main/requirements-dev.txt
-$STD /opt/frigate/.devcontainer/initialize.sh
-$STD make version
-cd /opt/frigate/web
-$STD npm install
-$STD npm run build
-cp -r /opt/frigate/web/dist/* /opt/frigate/web/
-cp -r /opt/frigate/config/. /config
-sed -i '/^s6-svc -O \.$/s/^/#/' /opt/frigate/docker/main/rootfs/etc/s6-overlay/s6-rc.d/frigate/run
-cat <<EOF >/config/config.yml
-mqtt:
-  enabled: false
-cameras:
-  test:
-    ffmpeg:
-      #hwaccel_args: preset-vaapi
-      inputs:
-        - path: /media/frigate/person-bicycle-car-detection.mp4
-          input_args: -re -stream_loop -1 -fflags +genpts
-          roles:
-            - detect
-            - rtmp
-    detect:
-      height: 1080
-      width: 1920
-      fps: 5
-EOF
-ln -sf /config/config.yml /opt/frigate/config/config.yml
-sed -i -e 's/^kvm:x:104:$/render:x:104:root,frigate/' -e 's/^render:x:105:root$/kvm:x:105:/' /etc/group
-echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
-msg_ok "Installed Frigate $RELEASE"
-
-if [ ! -z $NVD_VER ]; then
   msg_info "Installing TensorRT Object Detection Model (Resilience)"
   ################ BUILDING TENSORRT
   pip3 wheel --wheel-dir=/trt-wheels -r /opt/frigate/docker/tensorrt/requirements-amd64.txt
