@@ -188,6 +188,7 @@ if [ ! -z $NVD_VER ]; then
   fix_tensorrt="$(cat << EOF
 #!/bin/bash
 sed -i 's|/usr/local/TensorRT-.*/|/tensorrt/|g' /usr/local/src/tensorrt_demos/plugins/Makefile
+sed -i 's|-lnvparsers ||g' /usr/local/src/tensorrt_demos/plugins/Makefile
 EOF
 )"
 
