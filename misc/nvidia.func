@@ -12,7 +12,7 @@ check_nvidia_drivers() {
     exit-script
   fi
 
-  NVD_VER=${NVSMI#*-- v}
+  NVD_VER=$(nvidia-smi --version | grep DRIVER | cut -d ":" -f 2 | sed "s| ||g")
   NVD_MAJOR=${NVD_VER%%.*}
 
   if [ $NVD_MAJOR -le 500 ]; then
