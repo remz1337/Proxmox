@@ -130,8 +130,10 @@ if [ ! -z $NVD_VER ]; then
   msg_info "Installing TensorRT"
   mkdir -p /tensorrt
   cd /tensorrt
-  trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
-  TRT_VER=$(echo $trt_url | sed "s|.*tensorrt/||g" | sed "s|/tars.*||g")
+  #trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
+  #TRT_VER=$(echo $trt_url | sed "s|.*tensorrt/||g" | sed "s|/tars.*||g")
+  trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz"
+  TRT_VER="8.6.1"
   wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
   $STD tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
   rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
@@ -148,7 +150,16 @@ if [ ! -z $NVD_VER ]; then
   cd /tensorrt/python
   $STD apt install -qqy python3
   PYTHON_VER=$(python3 --version | sed "s|.* ||g" | sed "s|\.||g" | sed "s|.$||")
-  $STD python3 -m pip install tensorrt-*-cp${PYTHON_VER}-none-linux_x86_64.whl
+  #$STD python3 -m pip install tensorrt-*-cp${PYTHON_VER}-none-linux_x86_64.whl
+  python3 -m pip install tensorrt-8*-cp${PYTHON_VER}-none-linux_x86_64.whl
+  
+  cd ../uff
+  python3 -m pip install uff-*-py2.py3-none-any.whl
+
+  cd ../graphsurgeon
+  python3 -m pip install graphsurgeon-*-py2.py3-none-any.whl
+  
+  
   cd ../onnx_graphsurgeon
   $STD python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
   msg_ok "Installed TensorRT"
