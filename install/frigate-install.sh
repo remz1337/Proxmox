@@ -137,6 +137,12 @@ if [ ! -z $NVD_VER ]; then
   rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
   export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
   export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+  
+
+#Debug...  
+  export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/targets/x86_64-linux/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+  
+  
   echo "PATH=${PATH}"  >> /etc/bash.bashrc
   echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
   cd /tensorrt/python
@@ -188,7 +194,7 @@ if [ ! -z $NVD_VER ]; then
   fix_tensorrt="$(cat << EOF
 #!/bin/bash
 sed -i 's|/usr/local/TensorRT-.*/|/tensorrt/|g' /usr/local/src/tensorrt_demos/plugins/Makefile
-sed -i 's|-lnvparsers ||g' /usr/local/src/tensorrt_demos/plugins/Makefile
+#sed -i 's|-lnvparsers ||g' /usr/local/src/tensorrt_demos/plugins/Makefile
 EOF
 )"
 
