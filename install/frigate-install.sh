@@ -132,6 +132,7 @@ if [ ! -z $NVD_VER ]; then
   cd /tensorrt
   trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
   TRT_VER=$(echo $trt_url | sed "s|.*tensorrt/||g" | sed "s|/tars.*||g")
+  TRT_MAJOR=${TRT_VER%%.*}
   # trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz"
   # TRT_VER="8.6.1"
   wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
@@ -209,12 +210,15 @@ if [ ! -z $NVD_VER ]; then
   fix_tensorrt="$(cat << EOF
 #!/bin/bash
 sed -i 's|/usr/local/TensorRT-.*/|/tensorrt/|g' /usr/local/src/tensorrt_demos/plugins/Makefile
-#sed -i 's|-lnvparsers ||g' /usr/local/src/tensorrt_demos/plugins/Makefile
 EOF
 )"
 
   #echo "${fix_tensorrt}" > /usr/local/src/tensorrt_demos/fix_tensorrt.sh
   echo "${fix_tensorrt}" > /opt/frigate/fix_tensorrt.sh
+
+  if [ $TRT_MAJOR -gt 8 ]; then
+    echo "sed -i 's|-lnvparsers ||g' /usr/local/src/tensorrt_demos/plugins/Makefile" >> /opt/frigate/fix_tensorrt.sh
+  fi
 
   #insert after this line :git clone --depth 1 https://github.com/yeahme49/tensorrt_demos.git /tensorrt_demos
   #sed -i '18 i bash \/tensorrt_models\/fix_tensorrt.sh' tensorrt_models.sh
