@@ -224,6 +224,7 @@ EOF
   #sed -i '18 i bash \/tensorrt_models\/fix_tensorrt.sh' tensorrt_models.sh
   sed -i '9 i bash \/opt\/frigate\/fix_tensorrt.sh' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
   sed -i '19,22 s|.|#&|' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
+  sed -i 's|NateMeyer|remz1337|g' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
 
   #apt install python and g++
   apt install -qqy python-is-python3 g++
