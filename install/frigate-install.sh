@@ -135,33 +135,53 @@ if [ ! -z $NVD_VER ]; then
   TRT_MAJOR=${TRT_VER%%.*}
   # trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz"
   # TRT_VER="8.6.1"
-  wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
-  $STD tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
-  rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
-  export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
-  export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+  #wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
+  #$STD tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
+  #rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
+  
+  
+  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.1/tars/TensorRT-10.0.1.6.Linux.x86_64-gnu.cuda-12.4.tar.gz
+  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.1/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.1-cuda-12.4_1.0-1_amd64.deb
+  
+  
+  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/tars/TensorRT-10.0.0.6.Linux.x86_64-gnu.cuda-12.4.tar.gz
+  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.0-cuda-12.4_1.0-1_amd64.deb
+  trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
+  
+  wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
+  dpkg -i nv-tensorrt-local-repo-amd64.deb
+  #Nvidia only provides DEB package for Ubuntu, but still works with Debian
+  cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
+  rm nv-tensorrt-local-repo-amd64.deb
+  
+  apt update
+  apt install tensorrt-dev
+  
+  
+  # export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
+  # export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
   
 
-#Debug...  
-  export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/tensorrt/targets/x86_64-linux-gnu/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+# #Debug...  
+  # export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/tensorrt/targets/x86_64-linux-gnu/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
   
-  echo "PATH=${PATH}"  >> /etc/bash.bashrc
-  echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
-  cd /tensorrt/python
-  $STD apt install -qqy python3
-  PYTHON_VER=$(python3 --version | sed "s|.* ||g" | sed "s|\.||g" | sed "s|.$||")
-  $STD python3 -m pip install tensorrt-*-cp${PYTHON_VER}-none-linux_x86_64.whl
-  # python3 -m pip install tensorrt-8*-cp${PYTHON_VER}-none-linux_x86_64.whl
+  # echo "PATH=${PATH}"  >> /etc/bash.bashrc
+  # echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
+  # cd /tensorrt/python
+  # $STD apt install -qqy python3
+  # PYTHON_VER=$(python3 --version | sed "s|.* ||g" | sed "s|\.||g" | sed "s|.$||")
+  # $STD python3 -m pip install tensorrt-*-cp${PYTHON_VER}-none-linux_x86_64.whl
+  # # python3 -m pip install tensorrt-8*-cp${PYTHON_VER}-none-linux_x86_64.whl
   
-  # cd ../uff
-  # python3 -m pip install uff-*-py2.py3-none-any.whl
+  # # cd ../uff
+  # # python3 -m pip install uff-*-py2.py3-none-any.whl
 
-  # cd ../graphsurgeon
-  # python3 -m pip install graphsurgeon-*-py2.py3-none-any.whl
+  # # cd ../graphsurgeon
+  # # python3 -m pip install graphsurgeon-*-py2.py3-none-any.whl
   
   
-  cd ../onnx_graphsurgeon
-  $STD python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
+  # cd ../onnx_graphsurgeon
+  # $STD python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
   msg_ok "Installed TensorRT"
 
   msg_info "Installing TensorRT Object Detection Model (Resilience)"
