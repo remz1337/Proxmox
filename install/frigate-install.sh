@@ -117,12 +117,12 @@ if [ ! -z $NVD_VER ]; then
   $STD apt-key del 7fa2af80
   wget -q https://developer.download.nvidia.com/compute/cuda/repos/${os}/x86_64/cuda-keyring_1.1-1_all.deb
   $STD dpkg -i cuda-keyring_1.1-1_all.deb
+  $STD add-apt-repository contrib
   rm cuda-keyring_1.1-1_all.deb
-  $STD apt update
   if grep -qR "Acquire::http::Proxy" /etc/apt/apt.conf.d/ && [ -f "/etc/apt/sources.list.d/cuda-${os}-x86_64.list" ]; then
     sed -i "s|https://developer|http://HTTPS///developer|g" /etc/apt/sources.list.d/cuda-${os}-x86_64.list
-    $STD apt update
   fi
+  $STD apt update
   $STD apt install -qqy "cuda-toolkit-$TARGET_CUDA_VER"
   $STD apt install -qqy "cudnn-cuda-$NVD_MAJOR_CUDA"
   msg_ok "Installed Nvidia Dependencies"
@@ -231,7 +231,7 @@ EOF
 
   ### NEED TO BUILD THE TRT MODELS
   cd /opt/frigate
-  export YOLO_MODELS="yolov4-tiny-288,yolov4-tiny-416,yolov7-tiny-416"
+  export YOLO_MODELS="yolov4-tiny-288,yolov4-tiny-416,yolov7-tiny-416,yolov7-320"
   export TRT_VER="$TRT_VER"
   bash /opt/frigate/docker/tensorrt/detector/rootfs/etc/s6-overlay/s6-rc.d/trt-model-prepare/run
 
