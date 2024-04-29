@@ -160,14 +160,14 @@ if [ ! -z $NVD_VER ]; then
   apt install -y tensorrt-dev
   
   
-  # export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
+  export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
   # export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
   
 
 # #Debug...  
   # export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/tensorrt/targets/x86_64-linux-gnu/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
   
-  # echo "PATH=${PATH}"  >> /etc/bash.bashrc
+  echo "PATH=${PATH}"  >> /etc/bash.bashrc
   # echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
   # cd /tensorrt/python
   # $STD apt install -qqy python3
