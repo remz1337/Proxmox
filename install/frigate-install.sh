@@ -117,7 +117,7 @@ if [ ! -z $NVD_VER ]; then
   $STD apt-key del 7fa2af80
   wget -q https://developer.download.nvidia.com/compute/cuda/repos/${os}/x86_64/cuda-keyring_1.1-1_all.deb
   $STD dpkg -i cuda-keyring_1.1-1_all.deb
-  $STD apt install software-properties-common
+  $STD apt install -y software-properties-common
   $STD apt update
   $STD add-apt-repository contrib
   rm cuda-keyring_1.1-1_all.deb
