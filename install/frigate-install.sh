@@ -157,7 +157,7 @@ if [ ! -z $NVD_VER ]; then
   rm nv-tensorrt-local-repo-amd64.deb
   
   apt update
-  apt install tensorrt-dev
+  apt install -y tensorrt-dev
   
   
   # export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
