@@ -20,6 +20,7 @@ msg_ok "Installed Dependencies"
 
 msg_info "Installing Python3 Dependencies"
 $STD apt-get install -y {python3,python3-dev,python3-setuptools,python3-distutils,python3-pip}
+$STD pip install --upgrade pip
 msg_ok "Installed Python3 Dependencies"
 
 msg_info "Installing Node.js"
@@ -130,44 +131,44 @@ if [ ! -z $NVD_VER ]; then
   msg_ok "Installed Nvidia Dependencies"
 
   msg_info "Installing TensorRT"
-  mkdir -p /tensorrt
-  cd /tensorrt
-  trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
-  TRT_VER=$(echo $trt_url | sed "s|.*tensorrt/||g" | sed "s|/tars.*||g")
-  TRT_MAJOR=${TRT_VER%%.*}
-  # trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz"
-  # TRT_VER="8.6.1"
-  #wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
-  #$STD tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
-  #rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
+  # mkdir -p /tensorrt
+  # cd /tensorrt
+  # trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
+  # TRT_VER=$(echo $trt_url | sed "s|.*tensorrt/||g" | sed "s|/tars.*||g")
+  # TRT_MAJOR=${TRT_VER%%.*}
+  # # trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz"
+  # # TRT_VER="8.6.1"
+  # #wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
+  # #$STD tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
+  # #rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
   
   
-  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.1/tars/TensorRT-10.0.1.6.Linux.x86_64-gnu.cuda-12.4.tar.gz
-  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.1/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.1-cuda-12.4_1.0-1_amd64.deb
+  # #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.1/tars/TensorRT-10.0.1.6.Linux.x86_64-gnu.cuda-12.4.tar.gz
+  # #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.1/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.1-cuda-12.4_1.0-1_amd64.deb
   
   
-  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/tars/TensorRT-10.0.0.6.Linux.x86_64-gnu.cuda-12.4.tar.gz
-  #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.0-cuda-12.4_1.0-1_amd64.deb
-  trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
+  # #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/tars/TensorRT-10.0.0.6.Linux.x86_64-gnu.cuda-12.4.tar.gz
+  # #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.0-cuda-12.4_1.0-1_amd64.deb
+  # trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
   
-  wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
-  dpkg -i nv-tensorrt-local-repo-amd64.deb
-  #Nvidia only provides DEB package for Ubuntu, but still works with Debian
-  cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
-  rm nv-tensorrt-local-repo-amd64.deb
+  # wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
+  # dpkg -i nv-tensorrt-local-repo-amd64.deb
+  # #Nvidia only provides DEB package for Ubuntu, but still works with Debian
+  # cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
+  # rm nv-tensorrt-local-repo-amd64.deb
   
-  apt update
-  apt install -y tensorrt-dev
+  # apt update
+  # apt install -y tensorrt-dev
   
   
-  export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
-  # export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+  # export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
+  # # export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
   
 
-# #Debug...  
-  # export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/tensorrt/targets/x86_64-linux-gnu/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+# # #Debug...  
+  # # export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/tensorrt/targets/x86_64-linux-gnu/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
   
-  echo "PATH=${PATH}"  >> /etc/bash.bashrc
+  # echo "PATH=${PATH}"  >> /etc/bash.bashrc
   # echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
   # cd /tensorrt/python
   # $STD apt install -qqy python3
@@ -184,19 +185,51 @@ if [ ! -z $NVD_VER ]; then
   
   # cd ../onnx_graphsurgeon
   # $STD python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
-  msg_ok "Installed TensorRT"
-
-  msg_info "Installing TensorRT Object Detection Model (Resilience)"
-  ################ BUILDING TENSORRT
+  
+  
+  
+  
+  
+   ################ BUILDING TENSORRT
   #pip3 wheel --wheel-dir=/trt-wheels -r /opt/frigate/docker/tensorrt/requirements-amd64.txt
   #pip3 install -U /trt-wheels/*.whl
   pip3 install --extra-index-url 'https://pypi.nvidia.com' numpy tensorrt cuda-python cython nvidia-cuda-runtime-cu12 nvidia-cuda-runtime-cu11 nvidia-cublas-cu11 nvidia-cudnn-cu11 onnx protobuf  
   #pip3 install --extra-index-url 'https://pypi.nvidia.com' numpy tensorrt cuda-python cython nvidia-cuda-runtime-cu12 onnx protobuf  
   
+  TRT_VER=$(pip freeze | grep tensorrt== | sed "s|tensorrt==||g")
+  TRT_MAJOR=${TRT_VER%%.*}
+  
+  #trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
+  trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
+  wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
+  dpkg -i nv-tensorrt-local-repo-amd64.deb
+  #Nvidia only provides DEB package for Ubuntu, but still works with Debian
+  cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
+  rm nv-tensorrt-local-repo-amd64.deb
+  
+  apt update
+  # Need NvInfer.h header
+  apt install -y tensorrt-dev
+  #apt install -y libnvinfer5 libnvinfer-dev
+  #apt install -y libnvinfer-dev libnvinfer-plugin
+  
+  
+  export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/lib/python3.9/dist-packages/tensorrt_libs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+  echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
+  
   
   #ln -s libnvrtc.so.11.2 /usr/local/lib/python3.9/dist-packages/nvidia/cuda_nvrtc/lib/libnvrtc.so
   ldconfig
   #pip3 install -U /trt-wheels/*.whl
+  
+  # Temporarily get my patched frigate tensorrt.py plugin (with support for TensorRT v10)
+  curl -s https://raw.githubusercontent.com/remz1337/frigate/dev/frigate/detectors/plugins/tensorrt.py > /opt/frigate/frigate/detectors/plugins/tensorrt.py
+  
+  
+  msg_ok "Installed TensorRT"
+
+  msg_info "Installing TensorRT Object Detection Model (Resilience)"
+ 
 
   cp -a /opt/frigate/docker/tensorrt/detector/rootfs/. /
 
@@ -269,7 +302,7 @@ detectors:
 #    device: 0
 
 model:
-  path: /config/model_cache/tensorrt/${TRT_VER}/yolov7-tiny-416.trt
+  path: /config/model_cache/tensorrt/yolov7-tiny-416.trt
   input_tensor: nchw
   input_pixel_format: rgb
   width: 416
