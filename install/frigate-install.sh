@@ -131,124 +131,39 @@ if [ ! -z $NVD_VER ]; then
   msg_ok "Installed Nvidia Dependencies"
 
   msg_info "Installing TensorRT"
-  # mkdir -p /tensorrt
-  # cd /tensorrt
-  # trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
-  # TRT_VER=$(echo $trt_url | sed "s|.*tensorrt/||g" | sed "s|/tars.*||g")
-  # TRT_MAJOR=${TRT_VER%%.*}
-  # # trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz"
-  # # TRT_VER="8.6.1"
-  # #wget -qO TensorRT-Linux-x86_64-gnu-cuda.tar.gz $trt_url
-  # #$STD tar -xzvf TensorRT-Linux-x86_64-gnu-cuda.tar.gz -C /tensorrt --strip-components 1
-  # #rm TensorRT-Linux-x86_64-gnu-cuda.tar.gz
-  
-  
-  # #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.1/tars/TensorRT-10.0.1.6.Linux.x86_64-gnu.cuda-12.4.tar.gz
-  # #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.1/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.1-cuda-12.4_1.0-1_amd64.deb
-  
-  
-  # #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/tars/TensorRT-10.0.0.6.Linux.x86_64-gnu.cuda-12.4.tar.gz
-  # #https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.0.0/local_repo/nv-tensorrt-local-repo-ubuntu2204-10.0.0-cuda-12.4_1.0-1_amd64.deb
-  # trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
-  
-  # wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
-  # dpkg -i nv-tensorrt-local-repo-amd64.deb
-  # #Nvidia only provides DEB package for Ubuntu, but still works with Debian
-  # cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
-  # rm nv-tensorrt-local-repo-amd64.deb
-  
-  # apt update
-  # apt install -y tensorrt-dev
-  
-  
-  # export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
-  # # export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/tensorrt/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-  
-
-# # #Debug...  
-  # # export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/tensorrt/targets/x86_64-linux-gnu/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-  
-  # echo "PATH=${PATH}"  >> /etc/bash.bashrc
-  # echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
-  # cd /tensorrt/python
-  # $STD apt install -qqy python3
-  # PYTHON_VER=$(python3 --version | sed "s|.* ||g" | sed "s|\.||g" | sed "s|.$||")
-  # $STD python3 -m pip install tensorrt-*-cp${PYTHON_VER}-none-linux_x86_64.whl
-  # # python3 -m pip install tensorrt-8*-cp${PYTHON_VER}-none-linux_x86_64.whl
-  
-  # # cd ../uff
-  # # python3 -m pip install uff-*-py2.py3-none-any.whl
-
-  # # cd ../graphsurgeon
-  # # python3 -m pip install graphsurgeon-*-py2.py3-none-any.whl
-  
-  
-  # cd ../onnx_graphsurgeon
-  # $STD python3 -m pip install onnx_graphsurgeon-*-py2.py3-none-any.whl
-  
-  
-  
-  
-  
-   ################ BUILDING TENSORRT
   #pip3 wheel --wheel-dir=/trt-wheels -r /opt/frigate/docker/tensorrt/requirements-amd64.txt
   #pip3 install -U /trt-wheels/*.whl
+  # Use latest TensorRT version (instead of fixed v8)
   pip3 install --extra-index-url 'https://pypi.nvidia.com' numpy tensorrt cuda-python cython nvidia-cuda-runtime-cu12 nvidia-cuda-runtime-cu11 nvidia-cublas-cu11 nvidia-cudnn-cu11 onnx protobuf  
   #pip3 install --extra-index-url 'https://pypi.nvidia.com' numpy tensorrt cuda-python cython nvidia-cuda-runtime-cu12 onnx protobuf  
   
   TRT_VER=$(pip freeze | grep tensorrt== | sed "s|tensorrt==||g")
   TRT_MAJOR=${TRT_VER%%.*}
   
-  #trt_url=$(curl -Lsk https://raw.githubusercontent.com/NVIDIA/TensorRT/main/README.md | grep "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/.*/tars/TensorRT-.*.Linux.x86_64-gnu.cuda-${NVD_VER_CUDA}.tar.gz" | sed "s|.*](||g" | sed "s|)||g")
   trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
-  wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
-  dpkg -i nv-tensorrt-local-repo-amd64.deb
+  $STD wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
+  $STD dpkg -i nv-tensorrt-local-repo-amd64.deb
   #Nvidia only provides DEB package for Ubuntu, but still works with Debian
   cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
   rm nv-tensorrt-local-repo-amd64.deb
-  
-  apt update
+  $STD apt update
   # Need NvInfer.h header
-  apt install -y tensorrt-dev
-  #apt install -y libnvinfer5 libnvinfer-dev
-  #apt install -y libnvinfer-dev libnvinfer-plugin
+  $STD apt install -y tensorrt-dev
   
   export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
   export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/lib/python3.9/dist-packages/tensorrt_libs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-  
   echo "PATH=${PATH}"  >> /etc/bash.bashrc
   echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
-  
-  
-  #ln -s libnvrtc.so.11.2 /usr/local/lib/python3.9/dist-packages/nvidia/cuda_nvrtc/lib/libnvrtc.so
   ldconfig
-  #pip3 install -U /trt-wheels/*.whl
   
   # Temporarily get my patched frigate tensorrt.py plugin (with support for TensorRT v10)
   curl -s https://raw.githubusercontent.com/remz1337/frigate/dev/frigate/detectors/plugins/tensorrt.py > /opt/frigate/frigate/detectors/plugins/tensorrt.py
-  
-  
   msg_ok "Installed TensorRT"
 
   msg_info "Installing TensorRT Object Detection Model (Resilience)"
- 
-
   cp -a /opt/frigate/docker/tensorrt/detector/rootfs/. /
-
-  echo "Depoloying Frigate detector models running on Nvidia GPU"
-  echo "Make sure CUDA, cuDNN and TensorRT are already installed (with updated LD_LIBRARY_PATH)"
-
-  ### Install TensorRT detector (using Nvidia GPU)
-  # Avoid "LD_LIBRARY_PATH: unbound variable" by initializing the variable
-  #export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-
-  ################################# THIS IS OUTDATED, FRIGATE v0.13 HAS A S6 RUN SCRIPT TO BUILD TENSORRT DEMOS
-  #mkdir -p /tensorrt_models
-  #cd /tensorrt_models
-  #wget https://github.com/blakeblackshear/frigate/raw/master/docker/tensorrt_models.sh
-  #chmod +x tensorrt_models.sh
-  #######################################################################
-
+  #echo "Depoloying Frigate detector models running on Nvidia GPU"
+  #echo "Make sure CUDA, cuDNN and TensorRT are already installed (with updated LD_LIBRARY_PATH)"
   mkdir -p /usr/local/src/tensorrt_demos
   cd /usr/local/src
 
@@ -268,29 +183,22 @@ if [ ! -z $NVD_VER ]; then
 sed -i 's|/usr/local/TensorRT-.*/|/tensorrt/|g' /usr/local/src/tensorrt_demos/plugins/Makefile
 EOF
 )"
-
-  #echo "${fix_tensorrt}" > /usr/local/src/tensorrt_demos/fix_tensorrt.sh
   echo "${fix_tensorrt}" > /opt/frigate/fix_tensorrt.sh
-
   if [ $TRT_MAJOR -gt 8 ]; then
     echo "sed -i 's|-lnvparsers ||g' /usr/local/src/tensorrt_demos/plugins/Makefile" >> /opt/frigate/fix_tensorrt.sh
   fi
 
-  #insert after this line :git clone --depth 1 https://github.com/yeahme49/tensorrt_demos.git /tensorrt_demos
-  #sed -i '18 i bash \/tensorrt_models\/fix_tensorrt.sh' tensorrt_models.sh
+  sed -i '18,21 s|.|#&|' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
   sed -i '9 i bash \/opt\/frigate\/fix_tensorrt.sh' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
-  sed -i '19,22 s|.|#&|' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
+  #Temporarly get my fork patched for TensorRT v10
   sed -i 's|NateMeyer|remz1337|g' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
 
-  #apt install python and g++
-  apt install -qqy python-is-python3 g++
-  /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
-
-  ### NEED TO BUILD THE TRT MODELS
+  $STD apt install -qqy python-is-python3 g++
+  $STD /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
   cd /opt/frigate
   export YOLO_MODELS="yolov4-tiny-288,yolov4-tiny-416,yolov7-tiny-416,yolov7-320"
   export TRT_VER="$TRT_VER"
-  bash /opt/frigate/docker/tensorrt/detector/rootfs/etc/s6-overlay/s6-rc.d/trt-model-prepare/run
+  $STD bash /opt/frigate/docker/tensorrt/detector/rootfs/etc/s6-overlay/s6-rc.d/trt-model-prepare/run
 
   cat <<EOF >>/config/config.yml
 ffmpeg:
