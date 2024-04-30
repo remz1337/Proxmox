@@ -134,12 +134,9 @@ if [ ! -z $NVD_VER ]; then
   #pip3 wheel --wheel-dir=/trt-wheels -r /opt/frigate/docker/tensorrt/requirements-amd64.txt
   #pip3 install -U /trt-wheels/*.whl
   # Use latest TensorRT version (instead of fixed v8)
-  pip3 install --extra-index-url 'https://pypi.nvidia.com' numpy tensorrt cuda-python cython nvidia-cuda-runtime-cu12 nvidia-cuda-runtime-cu11 nvidia-cublas-cu11 nvidia-cudnn-cu11 onnx protobuf  
-  #pip3 install --extra-index-url 'https://pypi.nvidia.com' numpy tensorrt cuda-python cython nvidia-cuda-runtime-cu12 onnx protobuf  
-  
+  $STD pip3 install --extra-index-url 'https://pypi.nvidia.com' numpy tensorrt cuda-python cython nvidia-cuda-runtime-cu12 nvidia-cuda-runtime-cu11 nvidia-cublas-cu11 nvidia-cudnn-cu11 onnx protobuf
   TRT_VER=$(pip freeze | grep tensorrt== | sed "s|tensorrt==||g")
   TRT_MAJOR=${TRT_VER%%.*}
-  
   trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
   $STD wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
   $STD dpkg -i nv-tensorrt-local-repo-amd64.deb
@@ -147,70 +144,49 @@ if [ ! -z $NVD_VER ]; then
   cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
   rm nv-tensorrt-local-repo-amd64.deb
   $STD apt update
-  # Need NvInfer.h header
+  # Needed on top of the python install for the NvInfer.h header
   $STD apt install -y tensorrt-dev
-  
   export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
   export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/lib/python3.9/dist-packages/tensorrt_libs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
   echo "PATH=${PATH}"  >> /etc/bash.bashrc
   echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
   ldconfig
-  
   # Temporarily get my patched frigate tensorrt.py plugin (with support for TensorRT v10)
   curl -s https://raw.githubusercontent.com/remz1337/frigate/dev/frigate/detectors/plugins/tensorrt.py > /opt/frigate/frigate/detectors/plugins/tensorrt.py
   msg_ok "Installed TensorRT"
 
   msg_info "Installing TensorRT Object Detection Model (Resilience)"
   cp -a /opt/frigate/docker/tensorrt/detector/rootfs/. /
-  #echo "Depoloying Frigate detector models running on Nvidia GPU"
-  #echo "Make sure CUDA, cuDNN and TensorRT are already installed (with updated LD_LIBRARY_PATH)"
   mkdir -p /usr/local/src/tensorrt_demos
   cd /usr/local/src
-
-  #### Need to adjust the tensorrt_demos files to replace TensorRT include path (it's hardcoded to v7 installed in /usr/local)
-  ## /tensorrt_demos/plugins/Makefile --> change INCS and LIBS paths
-
-  ######## MAKE SOME EDITS TO UPDATE TENSORRT PATHS
-  #Create script to fix hardcoded TensorRT paths
-  #fix_tensorrt="$(cat << EOF
-  ##!/bin/bash
-  #sed -i 's/\/usr\/local\/TensorRT-7.1.3.4/\/tensorrt\/TensorRT-8.6.1.6/g' /usr/local/src/tensorrt_demos/plugins/Makefile
-  #EOF
-  #)"
-
   fix_tensorrt="$(cat << EOF
 #!/bin/bash
-sed -i 's|/usr/local/TensorRT-.*/|/tensorrt/|g' /usr/local/src/tensorrt_demos/plugins/Makefile
+sed -i 's|/usr/local/TensorRT-.*/|/usr/local/lib/python3.9/dist-packages/tensorrt_libs/|g' /usr/local/src/tensorrt_demos/plugins/Makefile
 EOF
 )"
   echo "${fix_tensorrt}" > /opt/frigate/fix_tensorrt.sh
   if [ $TRT_MAJOR -gt 8 ]; then
     echo "sed -i 's|-lnvparsers ||g' /usr/local/src/tensorrt_demos/plugins/Makefile" >> /opt/frigate/fix_tensorrt.sh
   fi
-
   sed -i '18,21 s|.|#&|' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
   sed -i '9 i bash \/opt\/frigate\/fix_tensorrt.sh' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
   #Temporarly get my fork patched for TensorRT v10
   sed -i 's|NateMeyer|remz1337|g' /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
-
   $STD apt install -qqy python-is-python3 g++
   $STD /opt/frigate/docker/tensorrt/detector/tensorrt_libyolo.sh
   cd /opt/frigate
   export YOLO_MODELS="yolov4-tiny-288,yolov4-tiny-416,yolov7-tiny-416,yolov7-320"
   export TRT_VER="$TRT_VER"
   $STD bash /opt/frigate/docker/tensorrt/detector/rootfs/etc/s6-overlay/s6-rc.d/trt-model-prepare/run
-
   cat <<EOF >>/config/config.yml
 ffmpeg:
   hwaccel_args: preset-nvidia-h264
   output_args:
     record: preset-record-generic-audio-aac
-
 detectors:
   tensorrt:
     type: tensorrt
 #    device: 0
-
 model:
   path: /config/model_cache/tensorrt/yolov7-tiny-416.trt
   input_tensor: nchw
@@ -376,5 +352,4 @@ $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
 
-msg_ok "Don't forget to edit the Frigate config file (/config/config.yml) and reboot. Example configuration at https://docs.frigate.video/configuration/"
-msg_ok "Frigate standalone installation complete! You can access the web interface at http://<machine_ip>:5000"
+echo -e "${BGN}Don't forget to edit the Frigate config file (${GN}/config/config.yml${BGN}) and reboot. Example configuration at https://docs.frigate.video/configuration/${CL}"
