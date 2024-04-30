@@ -213,8 +213,10 @@ if [ ! -z $NVD_VER ]; then
   #apt install -y libnvinfer5 libnvinfer-dev
   #apt install -y libnvinfer-dev libnvinfer-plugin
   
-  
+  export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
   export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/lib/python3.9/dist-packages/tensorrt_libs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+  
+  echo "PATH=${PATH}"  >> /etc/bash.bashrc
   echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
   
   
