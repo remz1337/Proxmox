@@ -404,7 +404,8 @@ advanced_settings() {
     fi
   fi
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "IPv6" --yesno "Disable IPv6?" 10 58); then
+  DISABLEIP6_DEFAULTNO=""; if [ $DISABLEIP6 = "no" ]; then DISABLEIP6_DEFAULTNO="--defaultno"; fi
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" $DISABLEIP6_DEFAULTNO --title "IPv6" --yesno "Disable IPv6?" 10 58); then
     DISABLEIP6="yes"
   else
     DISABLEIP6="no"
@@ -460,7 +461,8 @@ advanced_settings() {
     exit-script
   fi
   
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "Enable firewall" --yesno "Enable firewall?" 10 58); then
+  FW_DEFAULTNO=""; if [ FW == 0 ]; then FW_DEFAULTNO="--defaultno"; fi
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" $FW_DEFAULTNO --title "Enable firewall" --yesno "Enable firewall?" 10 58); then
     FW=1
   else
     FW=0
@@ -480,7 +482,8 @@ advanced_settings() {
   fi
 
   if [[ "$PW" == -password* ]]; then
-    if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH ACCESS" --yesno "Enable Root SSH Access?" 10 58); then
+    SSH_DEFAULTNO=""; if [ $SSH = "no" ]; then SSH_DEFAULTNO="--defaultno"; fi
+	if (whiptail --backtitle "Proxmox VE Helper Scripts" $SSH_DEFAULTNO --title "SSH ACCESS" --yesno "Enable Root SSH Access?" 10 58); then
       SSH="yes"
     else
       SSH="no"
@@ -491,7 +494,8 @@ advanced_settings() {
     echo -e "${DGN}Enable Root SSH Access: ${BGN}$SSH${CL}"
   fi
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
+  SSHUSER_DEFAULTNO=""; if [ $ADD_SSH_USER = "no" ]; then SSHUSER_DEFAULTNO="--defaultno"; fi
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" $SSHUSER_DEFAULTNO --title "SSH User" --yesno "Add common sudo user with SSH access?" 10 58); then
     ADD_SSH_USER="yes"
     phs_validate_required_config
   else
@@ -499,7 +503,8 @@ advanced_settings() {
   fi
   echo -e "${DGN}Add common sudo user with SSH access: ${BGN}$ADD_SSH_USER${CL}"
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
+  SHAREMNT_DEFAULTNO=""; if [ $SHARED_MOUNT = "no" ]; then SHAREMNT_DEFAULTNO="--defaultno"; fi
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" $SHAREMNT_DEFAULTNO --title "Shared Mount" --yesno "Mount shared directory and add share user?" 10 58); then
     SHARED_MOUNT="yes"
     phs_validate_required_config
   else
@@ -507,7 +512,8 @@ advanced_settings() {
   fi
   echo -e "${DGN}Enable Shared Mount: ${BGN}$SHARED_MOUNT${CL}"
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $HN LXC?" 10 58); then
+  POSTFIX_DEFAULTNO=""; if [ $POSTFIX_SAT = "no" ]; then POSTFIX_DEFAULTNO="--defaultno"; fi
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" $POSTFIX_DEFAULTNO --title "Configure Postfix Satellite" --yesno "Configure Postfix as satellite on $HN LXC?" 10 58); then
     POSTFIX_SAT="yes"
     phs_validate_required_config
   else
@@ -515,14 +521,16 @@ advanced_settings() {
   fi
   echo -e "${DGN}Configure Postfix Satellite: ${BGN}$POSTFIX_SAT${CL}"
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "Nvidia GPU Passthrough" --yesno "Passthrough an Nvidia GPU?" 10 58); then
+  NVIDIAPT_DEFAULTNO=""; if [ $NVIDIA_PASSTHROUGH = "no" ]; then NVIDIAPT_DEFAULTNO="--defaultno"; fi
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" $NVIDIAPT_DEFAULTNO --title "Nvidia GPU Passthrough" --yesno "Passthrough an Nvidia GPU?" 10 58); then
     NVIDIA_PASSTHROUGH="yes"
   else
     NVIDIA_PASSTHROUGH="no"
   fi
   echo -e "${DGN}Nvidia GPU Passthrough: ${BGN}$NVIDIA_PASSTHROUGH${CL}"
 
-  if (whiptail --backtitle "Proxmox VE Helper Scripts" --defaultno --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
+  VERB_DEFAULTNO=""; if [ $VERB = "no" ]; then VERB_DEFAULTNO="--defaultno"; fi
+  if (whiptail --backtitle "Proxmox VE Helper Scripts" $VERB_DEFAULTNO --title "VERBOSE MODE" --yesno "Enable Verbose Mode?" 10 58); then
     VERB="yes"
   else
     VERB="no"
@@ -559,6 +567,9 @@ install_script() {
     base_settings
     default_settings
   else
+    #Load variables with default settings
+    base_settings
+    default_settings
     header_info
     echo -e "${RD}Using Advanced Settings${CL}"
     advanced_settings
