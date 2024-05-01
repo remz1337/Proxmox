@@ -352,4 +352,4 @@ $STD apt-get autoremove
 $STD apt-get autoclean
 msg_ok "Cleaned"
 
-echo -e "${BGN}Don't forget to edit the Frigate config file (${GN}/config/config.yml${BGN}) and reboot. Example configuration at https://docs.frigate.video/configuration/${CL}"
+echo -e "Don't forget to edit the Frigate config file (${GN}/config/config.yml${CL}) and reboot. Example configuration at https://docs.frigate.video/configuration/"
