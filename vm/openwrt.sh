@@ -157,7 +157,7 @@ function msg_error() {
 }
 
 function pve_check() {
-  if ! pveversion | grep -Eq "pve-manager/(7.4-[1][3-9]|8.1.[1-9])"; then
+  if ! pveversion | grep -Eq "pve-manager/(7\.4-(1[3-8])|8\.[1-2])"; then
     echo -e "${CROSS} This version of Proxmox Virtual Environment is not supported"
     echo -e "Requires PVE7 Version 7.4-13 or later, or PVE8 Version 8.1.1 or later."
     echo -e "Exiting..."
@@ -475,6 +475,7 @@ qm set $VMID \
   -efidisk0 ${DISK0_REF},efitype=4m,size=4M \
   -scsi0 ${DISK1_REF},size=512M \
   -boot order=scsi0 \
+  -tags proxmox-helper-scripts \
   -description "<div align='center'><a href='https://Helper-Scripts.com'><img src='https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/images/logo-81x112.png'/></a>
 
   # OpenWRT

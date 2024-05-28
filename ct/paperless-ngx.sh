@@ -60,7 +60,6 @@ function update_script() {
     exit
   fi
   RELEASE=$(curl -s https://api.github.com/repos/paperless-ngx/paperless-ngx/releases/latest | grep "tag_name" | awk '{print substr($2, 2, length($2)-3) }')
-  SER=/etc/systemd/system/paperless-task-queue.service
 
   UPD=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "SUPPORT" --radiolist --cancel-button Exit-Script "Spacebar = Select" 11 58 2 \
     "1" "Update Paperless-ngx to $RELEASE" ON \
@@ -68,65 +67,38 @@ function update_script() {
     3>&1 1>&2 2>&3)
   header_info
   if [ "$UPD" == "1" ]; then
-    msg_info "Stopping Paperless-ngx"
-    systemctl stop paperless-consumer paperless-webserver paperless-scheduler
-    if [ -f "$SER" ]; then
-      systemctl stop paperless-task-queue.service
-    fi
-    sleep 1
-    msg_ok "Stopped Paperless-ngx"
+    if [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]] || [[ ! -f /opt/${APP}_version.txt ]]; then
+      msg_info "Stopping all Paperless-ngx Services"
+      systemctl stop paperless-consumer paperless-webserver paperless-scheduler paperless-task-queue.service
+      msg_ok "Stopped all Paperless-ngx Services"
 
-    msg_info "Updating to ${RELEASE}"
-    cd ~
-    if [ "$(dpkg -l | awk '/libmariadb-dev-compat/ {print }' | wc -l)" != 1 ]; then apt-get install -y libmariadb-dev-compat; fi &>/dev/null
-    wget https://github.com/paperless-ngx/paperless-ngx/releases/download/$RELEASE/paperless-ngx-$RELEASE.tar.xz &>/dev/null
-    tar -xf paperless-ngx-$RELEASE.tar.xz &>/dev/null
-    cp -r /opt/paperless/paperless.conf paperless-ngx/
-    cp -r paperless-ngx/* /opt/paperless/
-    cd /opt/paperless
-    pip install -r requirements.txt &>/dev/null
-    cd /opt/paperless/src
-    /usr/bin/python3 manage.py migrate &>/dev/null
-    if [ -f "$SER" ]; then
-      msg_ok "paperless-task-queue.service Exists."
+      msg_info "Updating to ${RELEASE}"
+      cd ~
+      wget -q https://github.com/paperless-ngx/paperless-ngx/releases/download/$RELEASE/paperless-ngx-$RELEASE.tar.xz
+      tar -xf paperless-ngx-$RELEASE.tar.xz
+      cp -r /opt/paperless/paperless.conf paperless-ngx/
+      cp -r paperless-ngx/* /opt/paperless/
+      cd /opt/paperless
+      pip install -r requirements.txt &>/dev/null
+      cd /opt/paperless/src
+      /usr/bin/python3 manage.py migrate &>/dev/null
+      echo "${RELEASE}" >/opt/${APP}_version.txt
+      msg_ok "Updated to ${RELEASE}"
+
+      msg_info "Cleaning up"
+      cd ~
+      rm paperless-ngx-$RELEASE.tar.xz
+      rm -rf paperless-ngx
+      msg_ok "Cleaned"
+
+      msg_info "Starting all Paperless-ngx Services"
+      systemctl start paperless-consumer paperless-webserver paperless-scheduler paperless-task-queue.service
+      sleep 1
+      msg_ok "Started all Paperless-ngx Services"
+      msg_ok "Updated Successfully!\n"
     else
-      cat <<EOF >/etc/systemd/system/paperless-task-queue.service
-[Unit]
-Description=Paperless Celery Workers
-Requires=redis.service
-[Service]
-WorkingDirectory=/opt/paperless/src
-ExecStart=celery --app paperless worker --loglevel INFO
-[Install]
-WantedBy=multi-user.target
-EOF
-      systemctl enable paperless-task-queue &>/dev/null
-      msg_ok "paperless-task-queue.service Created."
+      msg_ok "No update required. ${APP} is already at ${RELEASE}"
     fi
-    cat <<EOF >/etc/systemd/system/paperless-scheduler.service
-[Unit]
-Description=Paperless Celery beat
-Requires=redis.service
-[Service]
-WorkingDirectory=/opt/paperless/src
-ExecStart=celery --app paperless beat --loglevel INFO
-[Install]
-WantedBy=multi-user.target
-EOF
-    msg_ok "Updated to ${RELEASE}"
-
-    msg_info "Cleaning up"
-    cd ~
-    rm paperless-ngx-$RELEASE.tar.xz
-    rm -rf paperless-ngx
-    msg_ok "Cleaned"
-
-    msg_info "Starting Paperless-ngx"
-    systemctl daemon-reload
-    systemctl start paperless-consumer paperless-webserver paperless-scheduler paperless-task-queue.service
-    sleep 1
-    msg_ok "Started Paperless-ngx"
-    msg_ok "Updated Successfully!\n"
     exit
   fi
   if [ "$UPD" == "2" ]; then

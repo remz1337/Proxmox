@@ -20,17 +20,23 @@ $STD apt-get install -y mc
 msg_ok "Installed Dependencies"
 
 msg_info "Installing NextCloudPi (Patience)"
+$STD apt-get install -y systemd-resolved
+systemctl enable -q --now systemd-resolved
+cat <<'EOF' >/etc/systemd/resolved.conf
+[Resolve]
+DNS=8.8.8.8
+FallbackDNS=8.8.4.4
+EOF
+systemctl restart systemd-resolved
 $STD bash <(curl -fsSL https://raw.githubusercontent.com/nextcloud/nextcloudpi/master/install.sh)
-sed -i "s/3 => 'nextcloudpi.lan',/3 => '0.0.0.0',/g" /var/www/nextcloud/config/config.php
-sed -i '{s|root:/usr/sbin/nologin|root:/bin/bash|g}' /etc/passwd
-sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/8.1/fpm/php.ini /etc/php/8.1/cli/php.ini
-service apache2 restart
+systemctl disable -q --now systemd-resolved
+$STD apt-get remove -y systemd-resolved
 msg_ok "Installed NextCloudPi"
 
 motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

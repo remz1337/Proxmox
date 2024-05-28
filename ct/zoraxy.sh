@@ -19,8 +19,8 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Zoraxy"
-var_disk="4"
-var_cpu="2"
+var_disk="6"
+var_cpu="4"
 var_ram="2048"
 var_os="debian"
 var_version="12"
@@ -56,7 +56,19 @@ function default_settings() {
 function update_script() {
 header_info
 if [[ ! -d /opt/zoraxy/src ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-msg_error "There is currently no update path available."
+msg_info "Updating $APP"
+systemctl stop zoraxy
+cd /opt/zoraxy/src
+if ! git pull; then
+  echo "Already up to date."
+  systemctl start zoraxy
+  echo "No update required."
+  exit
+fi
+go mod tidy
+go build
+systemctl start zoraxy
+msg_ok "Updated $APP"
 exit
 }
 
@@ -64,6 +76,9 @@ start
 build_container
 description
 
+msg_info "Setting Container to Normal Resources"
+pct set $CTID -cores 2
+msg_ok "Set Container to Normal Resources"
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} should be reachable by going to the following URL.
          ${BL}http://${IP}:8000${CL} \n"

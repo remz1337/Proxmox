@@ -15,7 +15,7 @@ network_check
 update_os
 
 msg_info "Installing Dependencies (Patience)"
-$STD apt-get install -y {curl,sudo,mc,git,gpg,automake,build-essential,xz-utils,libtool,ccache,pkg-config,libgtk-3-dev,libavcodec-dev,libavformat-dev,libswscale-dev,libv4l-dev,libxvidcore-dev,libx264-dev,libjpeg-dev,libpng-dev,libtiff-dev,gfortran,openexr,libatlas-base-dev,libssl-dev,libtbb2,libtbb-dev,libdc1394-22-dev,libopenexr-dev,libgstreamer-plugins-base1.0-dev,libgstreamer1.0-dev,gcc,gfortran,libopenblas-dev,liblapack-dev,libusb-1.0-0-dev}
+$STD apt-get install -y {curl,sudo,mc,git,gpg,automake,build-essential,xz-utils,libtool,ccache,pkg-config,libgtk-3-dev,libavcodec-dev,libavformat-dev,libswscale-dev,libv4l-dev,libxvidcore-dev,libx264-dev,libjpeg-dev,libpng-dev,libtiff-dev,gfortran,openexr,libatlas-base-dev,libssl-dev,libtbb2,libtbb-dev,libdc1394-22-dev,libopenexr-dev,libgstreamer-plugins-base1.0-dev,libgstreamer1.0-dev,gcc,gfortran,libopenblas-dev,liblapack-dev,libusb-1.0-0-dev,jq}
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Python3 Dependencies"
@@ -39,19 +39,18 @@ chmod +x go2rtc
 $STD ln -svf /usr/local/go2rtc/bin/go2rtc /usr/local/bin/go2rtc
 msg_ok "Installed go2rtc"
 
+msg_info "Setting Up Hardware Acceleration"
+$STD apt-get -y install {va-driver-all,ocl-icd-libopencl1,intel-opencl-icd,vainfo,intel-gpu-tools}
 if [[ "$CTTYPE" == "0" ]]; then
-  msg_info "Setting Up Hardware Acceleration"
-  $STD apt-get -y install {va-driver-all,ocl-icd-libopencl1,intel-opencl-icd,vainfo,intel-gpu-tools}
   chgrp video /dev/dri
   chmod 755 /dev/dri
   chmod 660 /dev/dri/*
-  $STD adduser $(id -u -n) video
-  $STD adduser $(id -u -n) render
-  msg_ok "Set Up Hardware Acceleration"
 fi
-
-RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d '"' -f 4)
+msg_ok "Set Up Hardware Acceleration"
+RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | jq -r '.tag_name')
+msg_ok "Stop spinner to prevent segmentation fault"
 msg_info "Installing Frigate $RELEASE (Perseverance)"
+if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
 cd ~
 mkdir -p /opt/frigate/models
 wget -q https://github.com/blakeblackshear/frigate/archive/refs/tags/${RELEASE}.tar.gz -O frigate.tar.gz
@@ -96,7 +95,11 @@ cameras:
       fps: 5
 EOF
 ln -sf /config/config.yml /opt/frigate/config/config.yml
-sed -i -e 's/^kvm:x:104:$/render:x:104:root,frigate/' -e 's/^render:x:105:root$/kvm:x:105:/' /etc/group
+if [[ "$CTTYPE" == "0" ]]; then
+  sed -i -e 's/^kvm:x:104:$/render:x:104:root,frigate/' -e 's/^render:x:105:root$/kvm:x:105:/' /etc/group
+else
+  sed -i -e 's/^kvm:x:104:$/render:x:104:frigate/' -e 's/^render:x:105:$/kvm:x:105:/' /etc/group
+fi
 echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
 msg_ok "Installed Frigate $RELEASE"
 
@@ -196,7 +199,7 @@ model:
 EOF
   msg_ok "Installed TensorRT Object Detection Model (Resilience)"
 elif grep -q -o -m1 'avx[^ ]*' /proc/cpuinfo; then
-  echo -e "AVX support detected"
+  msg_ok "AVX Support Detected"
   msg_info "Installing Openvino Object Detection Model (Resilience)"
   $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt
   cd /opt/frigate/models
@@ -221,7 +224,7 @@ model:
   input_pixel_format: bgr
   labelmap_path: /openvino-model/coco_91cl_bkgr.txt
 EOF
-  msg_ok "Installed Openvino Object Detection Model (Resilience)"
+  msg_ok "Installed Openvino Object Detection Model"
 else
   cat <<EOF >>/config/config.yml
 model:
@@ -229,7 +232,7 @@ model:
 EOF
 fi
 
-msg_info "Installing Coral Object Detection Model (Resilience)"
+msg_info "Installing Coral Object Detection Model (Patience)"
 cd /opt/frigate
 export CCACHE_DIR=/root/.ccache
 export CCACHE_MAXSIZE=2G
@@ -348,8 +351,8 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"
 
 echo -e "Don't forget to edit the Frigate config file (${GN}/config/config.yml${CL}) and reboot. Example configuration at https://docs.frigate.video/configuration/"
