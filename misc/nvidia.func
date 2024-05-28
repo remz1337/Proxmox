@@ -1,7 +1,7 @@
 # This function checks if nvidia drivers are installed
 check_nvidia_drivers() {
   #### Check if nvidia drivers are installed
-  NVSMI=$(nvidia-smi -h | sed 1q)
+  NVSMI=$(nvidia-smi -h 2>&1 | sed 1q)
   #NVIDIA System Management Interface -- v535.154.05
 
   if ! echo $NVSMI | grep -Fq "NVIDIA System Management Interface"; then
