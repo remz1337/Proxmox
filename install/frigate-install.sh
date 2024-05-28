@@ -152,7 +152,7 @@ if [ ! -z $NVD_VER ]; then
   echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}" >> /etc/bash.bashrc
   ldconfig
   # Temporarily get my patched frigate tensorrt.py plugin (with support for TensorRT v10)
-  #curl -s https://raw.githubusercontent.com/remz1337/frigate/dev/frigate/detectors/plugins/tensorrt.py > /opt/frigate/frigate/detectors/plugins/tensorrt.py
+  curl -s https://raw.githubusercontent.com/remz1337/frigate/dev/frigate/detectors/plugins/tensorrt.py > /opt/frigate/frigate/detectors/plugins/tensorrt.py
   msg_ok "Installed TensorRT"
 
   msg_info "Installing TensorRT Object Detection Model (Resilience)"
