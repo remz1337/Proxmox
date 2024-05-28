@@ -26,6 +26,7 @@ $STD apt-get install -y libtiff-dev
 $STD apt-get install -y imagemagick
 $STD apt-get install -y darktable
 $STD apt-get install -y rawtherapee
+$STD apt-get install -y libvips42
 
 echo 'export PATH=/usr/local:$PATH' >>~/.bashrc
 export PATH=/usr/local:$PATH
@@ -76,6 +77,6 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

@@ -39,6 +39,7 @@ Type=simple
 WorkingDirectory=/opt/Jackett
 ExecStart=/bin/sh /opt/Jackett/jackett_launcher.sh
 TimeoutStopSec=30
+Environment="DisableRootWarning=true"
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -49,6 +50,6 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

@@ -16,7 +16,7 @@ color() {
   CM="${GN}✓${CL}"
   CROSS="${RD}✗${CL}"
   BFR="\\r\\033[K"
-  HOLD="-"
+  HOLD=" "
 }
 
 # This function enables error handling in the script by setting options and defining a trap for the ERR signal.
@@ -38,13 +38,13 @@ error_handler() {
 
 # This function displays a spinner.
 spinner() {
-  printf "\e[?25l"
-  spinner="/-\\|/-\\|"
-  spin_i=0
-  while true; do
-    printf "\b%s" "${spinner:spin_i++%${#spinner}:1}"
-    sleep 0.1
-  done
+    local chars="/-\|"
+    local spin_i=0
+    printf "\e[?25l"
+    while true; do
+        printf "\r \e[36m%s\e[0m" "${chars:spin_i++%${#chars}:1}"
+        sleep 0.1
+    done
 }
 
 # This function displays an informational message with a yellow color.
@@ -98,7 +98,7 @@ pve_check() {
   if [ $(pveversion | grep "pve-manager/8" | wc -l) -ne 1 ]; then
     whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "Proxmox VE 7 Detected" "You are currently using Proxmox VE 7 (EOL 2024-07), refrain from creating Debian 12 LXCs. \nDefault distribution for $APP LXC is ${var_os} ${var_version}" 10 60
   fi
-  if ! pveversion | grep -Eq "pve-manager/(7.4-[1][3-9]|8.1.[1-9])"; then
+  if ! pveversion | grep -Eq "pve-manager/(7\.4-(1[3-8])|8\.[1-2])"; then
     msg_error "This version of Proxmox Virtual Environment is not supported"
     echo -e "Requires PVE7 Version 7.4-13 or later, or PVE8 Version 8.1.1 or later."
     echo -e "Exiting..."
@@ -111,6 +111,7 @@ pve_check() {
 arch_check() {
   if [ "$(dpkg --print-architecture)" != "amd64" ]; then
     echo -e "\n ${CROSS} This script will not work with PiMox! \n"
+    echo -e "\n Visit https://github.com/asylumexp/Proxmox for ARM64 support. \n"
     echo -e "Exiting..."
     sleep 2
     exit
@@ -247,7 +248,7 @@ advanced_settings() {
       if var_version=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "UBUNTU VERSION" --radiolist "Choose Version" 10 58 3 \
         "20.04" "Focal" OFF \
         "22.04" "Jammy" OFF \
-        "23.10" "Mantic" OFF \
+        "24.04" "Noble" OFF \
         3>&1 1>&2 2>&3); then
         if [ -n "$var_version" ]; then
           echo -e "${DGN}Using $var_os Version: ${BGN}$var_version${CL}"
@@ -272,17 +273,29 @@ advanced_settings() {
     fi
   done
 
-  if PW1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "\nSet Root Password (needed for root ssh access)" 9 58 --title "PASSWORD(leave blank for automatic login)" 3>&1 1>&2 2>&3); then
-    if [ -z $PW1 ]; then
-      PW1="Automatic Login"
-      PW=""
+  while true; do
+    if PW1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "\nSet Root Password (needed for root ssh access)" 9 58 --title "PASSWORD(leave blank for automatic login)" 3>&1 1>&2 2>&3); then
+      if [[ ! -z "$PW1" ]]; then
+        if [[ "$PW1" == *" "* ]]; then
+          whiptail --msgbox "Password cannot contain spaces. Please try again." 8 58
+        elif [ ${#PW1} -lt 5 ]; then
+          whiptail --msgbox "Password must be at least 5 characters long. Please try again." 8 58
+        else
+          PW="-password $PW1"
+          echo -e "${DGN}Using Root Password: ${BGN}$PW1${CL}"
+          break
+        fi
+      else
+        PW1="Automatic Login"
+        PW=""
+        echo -e "${DGN}Using Root Password: ${BGN}$PW1${CL}"
+        break
+      fi
     else
-      PW="-password $PW1"
+      exit-script
     fi
-    echo -e "${DGN}Using Root Password: ${BGN}$PW1${CL}"
-  else
-    exit-script
-  fi
+  done
+
 
   if CT_ID=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set Container ID" 8 58 $NEXTID --title "CONTAINER ID" 3>&1 1>&2 2>&3); then
     if [ -z "$CT_ID" ]; then
@@ -683,6 +696,24 @@ lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir
 lxc.mount.entry: /dev/dri/renderD128 dev/dri/renderD128 none bind,optional,create=file
 EOF
     fi
+  else
+    if [[ "$APP" == "Channels" || "$APP" == "Emby" || "$APP" == "Frigate" || "$APP" == "Jellyfin" || "$APP" == "Plex" || "$APP" == "Scrypted" || "$APP" == "Tdarr" || "$APP" == "Unmanic" ]]; then
+      if [[ -e "/dev/dri/renderD128" ]]; then
+        if [[ -e "/dev/dri/card0" ]]; then
+          cat <<EOF >>$LXC_CONFIG
+# VAAPI hardware transcoding
+dev0: /dev/dri/card0,gid=44
+dev1: /dev/dri/renderD128,gid=104
+EOF
+        else
+          cat <<EOF >>$LXC_CONFIG
+# VAAPI hardware transcoding
+dev0: /dev/dri/card1,gid=44
+dev1: /dev/dri/renderD128,gid=104
+EOF
+        fi
+      fi
+    fi
   fi
 
   # This starts the container and executes <app>-install.sh
@@ -692,8 +723,10 @@ EOF
   if [ "$var_os" == "alpine" ]; then
     sleep 3
         pct exec "$CTID" -- /bin/sh -c 'cat <<EOF >/etc/apk/repositories
-http://dl-cdn.alpinelinux.org/alpine/latest-stable/main
-http://dl-cdn.alpinelinux.org/alpine/latest-stable/community
+#http://dl-cdn.alpinelinux.org/alpine/latest-stable/main
+#http://dl-cdn.alpinelinux.org/alpine/latest-stable/community
+http://dl-cdn.alpinelinux.org/alpine/v3.19/main
+http://dl-cdn.alpinelinux.org/alpine/v3.19/community
 EOF'
     pct exec "$CTID" -- ash -c "apk add bash >/dev/null"
   fi
