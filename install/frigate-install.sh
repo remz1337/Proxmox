@@ -218,7 +218,7 @@ elif grep -q -o -m1 'avx[^ ]*' /proc/cpuinfo; then
 detectors:
   ov:
     type: openvino
-    device: AUTO
+    device: CPU
     model:
       path: /openvino-model/FP16/ssdlite_mobilenet_v2.xml
 model:
