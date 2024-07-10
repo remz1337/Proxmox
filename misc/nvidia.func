@@ -171,3 +171,68 @@ configure_kernel_nvidia() {
   #### NEED TO REBOOT HERE
   echo "Please reboot the host to reload the Nvidia kernels."
 }
+
+
+# This function lists the available Nvidia GPUs and allows the user to select one (from the list of PCI devices to show already blacklisted devices)
+select_nvidia_gpu_vm() {
+  #### First, select from available Nvidia GPUs
+  ##### LIST AVAILABLE GPUS (map dev to GPU)
+  #nvidia-smi -L
+
+  declare -a MENU
+
+  OFFSET=2
+
+#  while IFS= read -r line; do
+#    tmp_gpu=${line##* }
+#
+#    #match lspci device to GPU name (/dev/nvidia*) --> Device Minor
+#    #https://github.com/NVIDIA/open-gpu-kernel-modules/discussions/336
+#    #cat /proc/driver/nvidia/gpus/0000\:06\:00.0/information
+#    GPU_DEV_INFO="/proc/driver/nvidia/gpus/$tmp_gpu/information"
+#
+#    GPU_MODEL=$(cat $GPU_DEV_INFO | grep "Model:")
+#    GPU_MODEL=$(echo ${GPU_MODEL#* } | awk '{$1=$1;print}')
+#
+#    GPU_DEV_NUM=$(cat $GPU_DEV_INFO | grep "Device Minor:")
+#    GPU_DEV_NUM=$(echo ${GPU_DEV_NUM##* } | awk '{$1=$1;print}')
+#
+#    if [[ $((${#GPU_MODEL} + $OFFSET)) -gt ${MSG_MAX_LENGTH:-} ]]; then
+#      MSG_MAX_LENGTH=$((${#GPU_MODEL} + $OFFSET))
+#    fi
+#    MENU+=("$GPU_DEV_NUM" "$GPU_MODEL" "OFF")
+#
+#  done <<< $(ls -al /proc/driver/nvidia/gpus | grep "0000:")
+
+  while IFS= read -r line; do
+    ID=$(echo ${line} | cut -d ' ' -f 1 | cut -d '.' -f 1)
+    NAME=${line%%]*}
+    NAME=${NAME#*[}
+    OFFSET=2
+
+    if [[ $((${#NAME} + $OFFSET)) -gt ${MSG_MAX_LENGTH:-} ]]; then
+      MSG_MAX_LENGTH=$((${#NAME} + $OFFSET))
+    fi
+    MENU+=("$ID" "$NAME" "OFF")
+
+  done <<< $(lspci -v | grep "VGA controller")
+
+  if [ ${#MENU[@]} -eq 0 ]; then
+    echo "No Nvidia GPU found."
+    exit-script
+  fi
+
+  # Select GPU
+  if [ $((${#MENU[@]}/3)) -eq 1 ]; then
+    printf "${MENU[0]}"
+  else
+    GPU=""
+    while [ -z "${GPU:+x}" ]; do
+      GPU=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Graphics Cards" --radiolist \
+      "Which GPU would you like to use?\nTo make a selection, use the Spacebar.\n" \
+      16 $(($MSG_MAX_LENGTH + 23)) 6 \
+      "${MENU[@]}" 3>&1 1>&2 2>&3) || exit "Menu aborted."
+    done
+    printf "$GPU"
+  fi
+}
