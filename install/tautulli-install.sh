@@ -26,12 +26,13 @@ $STD apt-get install -y \
   python3 \
   python3-dev \
   python3-pip
+rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
 msg_ok "Updated Python3"
 
 msg_info "Installing Tautulli"
 cd /opt
 $STD git clone https://github.com/Tautulli/Tautulli.git
-python3 -m pip install -q -r /opt/Tautulli/requirements.txt
+$STD pip install -q -r /opt/Tautulli/requirements.txt
 $STD pip install pyopenssl
 msg_ok "Installed Tautulli"
 

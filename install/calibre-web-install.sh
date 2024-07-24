@@ -23,6 +23,7 @@ msg_ok "Installed Dependencies"
 
 msg_info "Installing Python Dependencies"
 $STD apt-get -y install python3-pip
+rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
 msg_ok "Installed Python Dependencies"
 
 msg_info "Installing Kepubify"
@@ -36,6 +37,7 @@ msg_info "Installing Calibre-Web"
 mkdir -p /opt/calibre-web
 $STD wget https://github.com/janeczku/calibre-web/raw/master/library/metadata.db -P /opt/calibre-web
 $STD pip install calibreweb
+$STD pip install jsonschema
 msg_ok "Installed Calibre-Web"
 
 msg_info "Creating Service"

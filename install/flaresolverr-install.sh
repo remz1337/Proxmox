@@ -18,7 +18,9 @@ msg_info "Installing Dependencies"
 $STD apt-get install -y curl
 $STD apt-get install -y sudo
 $STD apt-get install -y mc
-$STD apt-get install -y apt-transport-https wget gpg xvfb
+$STD apt-get install -y apt-transport-https
+$STD apt-get install -y gpg
+$STD apt-get install -y xvfb
 msg_ok "Installed Dependencies"
 
 msg_info "Installing Chrome"
@@ -33,6 +35,7 @@ RELEASE=$(wget -q https://github.com/FlareSolverr/FlareSolverr/releases/latest -
 $STD wget -q https://github.com/FlareSolverr/FlareSolverr/releases/download/$RELEASE/flaresolverr_linux_x64.tar.gz
 $STD tar -xzf flaresolverr_linux_x64.tar.gz -C /opt
 $STD rm flaresolverr_linux_x64.tar.gz
+echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
 msg_ok "Installed FlareSolverr"
 
 msg_info "Creating Service"
@@ -60,6 +63,6 @@ motd_ssh
 customize
 
 msg_info "Cleaning up"
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

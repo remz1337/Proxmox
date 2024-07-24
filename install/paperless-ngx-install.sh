@@ -172,6 +172,7 @@ cat <<EOF >/etc/systemd/system/paperless-task-queue.service
 [Unit]
 Description=Paperless Celery Workers
 Requires=redis.service
+After=postgresql.service
 
 [Service]
 WorkingDirectory=/opt/paperless/src
@@ -220,6 +221,6 @@ customize
 
 msg_info "Cleaning up"
 rm -rf /opt/paperless/docker
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

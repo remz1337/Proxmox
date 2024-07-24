@@ -17,25 +17,32 @@ msg_info "Installing Dependencies"
 $STD apt-get install -y curl
 $STD apt-get install -y sudo
 $STD apt-get install -y mc
-$STD apt-get install -y gnupg2 
-$STD apt-get install -y ca-certificates 
+$STD apt-get install -y gpg
+$STD apt-get install -y apt-transport-https
 $STD apt-get install -y lsb-release 
-$STD apt-get install -y debian-archive-keyring
 msg_ok "Installed Dependencies"
 
-msg_info "Installing Nginx v1.20.0"
+msg_info "Installing Nginx"
 wget -qO- https://nginx.org/keys/nginx_signing.key | gpg --dearmor >/usr/share/keyrings/nginx-archive-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian `lsb_release -cs` nginx" >/etc/apt/sources.list.d/nginx.list
+echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian $(lsb_release -cs) nginx" >/etc/apt/sources.list.d/nginx.list
 $STD apt-get update
-$STD apt-get install -y nginx=1.24.0-1~$(lsb_release -cs)
-msg_ok "Installed Nginx v1.20.0"
+$STD apt-get install -y nginx
+msg_ok "Installed Nginx"
 
-msg_info "Installing BunkerWeb v1.5.7"
+RELEASE=$(curl -s https://api.github.com/repos/bunkerity/bunkerweb/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+msg_info "Installing BunkerWeb v${RELEASE} (Patience)"
+curl -fsSL "https://repo.bunkerweb.io/bunkerity/bunkerweb/gpgkey" | gpg --dearmor >/etc/apt/keyrings/bunkerity_bunkerweb-archive-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/bunkerity_bunkerweb-archive-keyring.gpg] https://repo.bunkerweb.io/bunkerity/bunkerweb/debian/ bookworm main" >/etc/apt/sources.list.d/bunkerity_bunkerweb.list
+$STD apt-get update
 export UI_WIZARD=1
-curl -sSL https://packagecloud.io/install/repositories/bunkerity/bunkerweb/script.deb.sh | bash &>/dev/null
-$STD apt-get install -y bunkerweb=1.5.7
-#$STD apt-mark hold nginx bunkerweb
-msg_ok "Installed BunkerWeb v1.5.7"
+$STD apt-get install -y bunkerweb=${RELEASE}
+cat <<EOF >/etc/apt/preferences.d/bunkerweb
+Package: bunkerweb
+Pin: version ${RELEASE}
+Pin-Priority: 1001
+EOF
+echo "${RELEASE}" >/opt/${APPLICATION}_version.txt
+msg_ok "Installed BunkerWeb v${RELEASE}"
 
 motd_ssh
 customize

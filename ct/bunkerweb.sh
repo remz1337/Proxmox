@@ -55,10 +55,25 @@ function default_settings() {
 function update_script() {
 header_info
 if [[ ! -d /etc/bunkerweb ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-msg_info "Updating $APP"
-apt-get update &>/dev/null
-apt-get -y upgrade &>/dev/null
-msg_ok "Updated $APP"
+
+RELEASE=$(curl -s https://api.github.com/repos/bunkerity/bunkerweb/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
+
+  msg_info "Updating ${APP} to ${RELEASE}"
+  cat <<EOF >/etc/apt/preferences.d/bunkerweb
+Package: bunkerweb
+Pin: version ${RELEASE}
+Pin-Priority: 1001
+EOF
+  apt-get update
+  apt-get install nginx -y
+  apt-get install -y bunkerweb=${RELEASE}
+  echo "${RELEASE}" >/opt/${APP}_version.txt
+  msg_ok "Updated ${APP} to ${RELEASE}"
+
+else
+  msg_ok "No update required. ${APP} is already at ${RELEASE}"
+fi
 exit
 }
 

@@ -47,6 +47,7 @@ if [[ "$CTTYPE" == "0" ]]; then
   chmod 660 /dev/dri/*
 fi
 msg_ok "Set Up Hardware Acceleration"
+
 RELEASE=$(curl -s https://api.github.com/repos/blakeblackshear/frigate/releases/latest | jq -r '.tag_name')
 msg_ok "Stop spinner to prevent segmentation fault"
 msg_info "Installing Frigate $RELEASE (Perseverance)"
@@ -61,6 +62,7 @@ $STD pip3 wheel --wheel-dir=/wheels -r /opt/frigate/docker/main/requirements-whe
 cp -a /opt/frigate/docker/main/rootfs/. /
 export TARGETARCH="amd64"
 echo 'libc6 libraries/restart-without-asking boolean true' | debconf-set-selections
+wget -q -O /opt/frigate/docker/main/install_deps.sh https://raw.githubusercontent.com/blakeblackshear/frigate/dev/docker/main/install_deps.sh
 $STD /opt/frigate/docker/main/install_deps.sh
 $STD apt update
 $STD ln -svf /usr/lib/btbn-ffmpeg/bin/ffmpeg /usr/local/bin/ffmpeg
@@ -254,7 +256,10 @@ cd /
 wget -qO edgetpu_model.tflite https://github.com/google-coral/test_data/raw/release-frogfish/ssdlite_mobiledet_coco_qat_postprocess_edgetpu.tflite
 wget -qO cpu_model.tflite https://github.com/google-coral/test_data/raw/release-frogfish/ssdlite_mobiledet_coco_qat_postprocess.tflite
 cp /opt/frigate/labelmap.txt /labelmap.txt
-wget -qO cpu_audio_model.tflite https://tfhub.dev/google/lite-model/yamnet/classification/tflite/1?lite-format=tflite
+wget -qO yamnet-tflite-classification-tflite-v1.tar.gz https://www.kaggle.com/api/v1/models/google/yamnet/tfLite/classification-tflite/1/download
+tar xzf yamnet-tflite-classification-tflite-v1.tar.gz
+rm -rf yamnet-tflite-classification-tflite-v1.tar.gz
+mv 1.tflite cpu_audio_model.tflite
 cp /opt/frigate/audio-labelmap.txt /audio-labelmap.txt
 mkdir -p /media/frigate
 wget -qO /media/frigate/person-bicycle-car-detection.mp4 https://github.com/intel-iot-devkit/sample-videos/raw/master/person-bicycle-car-detection.mp4

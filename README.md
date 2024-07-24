@@ -6,8 +6,7 @@
 <h1 align="center">Proxmox VE Helper-Scripts</h1>
 
 <p align="center">
-  <a href="https://helper-scripts.com/terms-of-use">Terms of Use</a> | 
-  <a href="https://helper-scripts.com/">Website</a> | 
+  <a href="https://tteck.github.io/Proxmox/">Website</a> | 
   <a href="https://github.com/remz1337/Proxmox/blob/remz/.github/CONTRIBUTING.md">Contribute</a> |
   <a href="https://github.com/remz1337/Proxmox/blob/remz/USER_SUBMITTED_GUIDES.md">Guides</a> |
   <a href="https://github.com/remz1337/Proxmox/blob/remz/CHANGELOG.md">Changelog</a> |

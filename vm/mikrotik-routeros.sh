@@ -62,11 +62,11 @@ function cleanup() {
 }
 TEMP_DIR=$(mktemp -d)
 pushd $TEMP_DIR >/dev/null
- if ! pveversion | grep -Eq "pve-manager/(7\.4-(1[3-8])|8\.[1-2])"; then
-  echo "⚠ This version of Proxmox Virtual Environment is not supported"
-  echo -e "Requires PVE7 Version 7.4-13 or later, or PVE8 Version 8.1.1 or later."
-  echo "Exiting..."
-  sleep 3
+if ! pveversion | grep -Eq "pve-manager/8.[1-3]"; then
+  msg_error "This version of Proxmox Virtual Environment is not supported"
+  echo -e "Requires Proxmox Virtual Environment Version 8.1 or later."
+  echo -e "Exiting..."
+  sleep 2
   exit
 fi
 if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "Mikrotik RouterOS CHR VM" --yesno "This will create a New Mikrotik RouterOS CHR VM. Proceed?" 10 58); then
@@ -234,7 +234,7 @@ msg_ok "Using ${CL}${BL}$STORAGE${CL} ${GN}for Storage Location."
 msg_ok "Virtual Machine ID is ${CL}${BL}$VMID${CL}."
 msg_info "Getting URL for Mikrotik RouterOS CHR Disk Image"
 
-URL=https://download.mikrotik.com/routeros/7.12.1/chr-7.12.1.img.zip
+URL=https://download.mikrotik.com/routeros/7.15.2/chr-7.15.2.img.zip
 
 sleep 2
 msg_ok "${CL}${BL}${URL}${CL}"
@@ -254,13 +254,12 @@ nfs | dir)
 btrfs | zfspool)
   DISK_EXT=""
   DISK_REF="$VMID/"
-  DISK_FORMAT="subvol"
   DISK_IMPORT="-format raw"
   ;;
 esac
 
 DISK_VAR="vm-${VMID}-disk-0${DISK_EXT:-}"
-DISK_REF="${STORAGE}:${DISK_VAR:-}"
+DISK_REF="${STORAGE}:${DISK_REF:-}${DISK_VAR:-}"
 
 msg_ok "Extracted Mikrotik RouterOS CHR Disk Image"
 msg_info "Creating Mikrotik RouterOS CHR VM"

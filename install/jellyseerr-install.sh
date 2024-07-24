@@ -40,6 +40,8 @@ msg_ok "Installed Yarn"
 msg_info "Installing Jellyseerr (Patience)"
 git clone -q https://github.com/Fallenbagel/jellyseerr.git /opt/jellyseerr
 cd /opt/jellyseerr
+$STD git checkout main
+CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile --network-timeout 1000000 &>/dev/null
 $STD yarn install
 $STD yarn build
 mkdir -p /etc/jellyseerr/

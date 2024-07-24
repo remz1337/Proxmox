@@ -41,6 +41,7 @@ $STD apt-get install -y \
   python3-certbot-dns-cloudflare
 $STD pip3 install certbot-dns-multi
 $STD python3 -m venv /opt/certbot/
+rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED
 msg_ok "Installed Python Dependencies"
 
 VERSION="$(awk -F'=' '/^VERSION_CODENAME=/{ print $NF }' /etc/os-release)"
@@ -202,6 +203,6 @@ msg_ok "Started Services"
 msg_info "Cleaning up"
 rm -rf ../nginx-proxy-manager-*
 systemctl restart openresty
-$STD apt-get autoremove
-$STD apt-get autoclean
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
 msg_ok "Cleaned"

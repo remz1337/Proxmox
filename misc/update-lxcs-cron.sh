@@ -22,7 +22,7 @@ function update_container() {
   alpine) pct exec "$container" -- ash -c "apk update && apk upgrade" ;;
   archlinux) pct exec "$container" -- bash -c "pacman -Syyu --noconfirm" ;;
   fedora | rocky | centos | alma) pct exec "$container" -- bash -c "dnf -y update && dnf -y upgrade" ;;
-  ubuntu | debian | devuan) pct exec "$container" -- bash -c "apt-get update 2>/dev/null | grep 'packages.*upgraded'; apt-get upgrade --dry-run && DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confold" dist-upgrade -y" ;;
+  ubuntu | debian | devuan) pct exec "$container" -- bash -c "apt-get update 2>/dev/null | grep 'packages.*upgraded'; apt-get upgrade --dry-run && DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confold" dist-upgrade -y; rm -rf /usr/lib/python3.*/EXTERNALLY-MANAGED" ;;
   esac
 }
 
@@ -35,7 +35,6 @@ for container in $(pct list | awk '{if(NR>1) print $1}'); do
     fi
   done
   if [ "$excluded" == true ]; then
-    header_info
     echo -e "[Info] Skipping $container"
     sleep 1
   else

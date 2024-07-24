@@ -67,7 +67,7 @@ then
   systemctl start jellyseerr
   exit
 fi
-yarn install &>/dev/null
+CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile --network-timeout 1000000 &>/dev/null
 yarn build &>/dev/null
 systemctl start jellyseerr
 msg_ok "Updated $APP"
