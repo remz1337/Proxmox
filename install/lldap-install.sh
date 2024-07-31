@@ -27,9 +27,12 @@ os="${os:3}"
 if [ "$os" == "ubuntu" ]; then
   DISTRO="Ubuntu"
 fi
-echo 'deb http://download.opensuse.org/repositories/home:/Masgalor:/LLDAP/${DISTRO}_${var_version}/ /' | tee /etc/apt/sources.list.d/home:Masgalor:LLDAP.list
+DISTRO_VER=$(less /etc/os-release | grep "^VERSION_ID=")
+DISTRO_VER="${DISTRO_VER:12}"
+DISTRO_VER="${DISTRO_VER%%\"}"
+echo 'deb http://download.opensuse.org/repositories/home:/Masgalor:/LLDAP/${DISTRO}_${DISTRO_VER}/ /' | tee /etc/apt/sources.list.d/home:Masgalor:LLDAP.list
 #curl -fsSL https://download.opensuse.org/repositories/home:Masgalor:LLDAP/Debian_12/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/home_Masgalor_LLDAP.gpg > /dev/null
-curl -fsSL https://download.opensuse.org/repositories/home:Masgalor:LLDAP/${DISTRO}_${var_version}/Release.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/home_Masgalor_LLDAP.gpg
+curl -fsSL https://download.opensuse.org/repositories/home:Masgalor:LLDAP/${DISTRO}_${DISTRO_VER}/Release.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/home_Masgalor_LLDAP.gpg
 $STD apt update
 $STD apt install -y lldap
 msg_ok "Installed lldap"
