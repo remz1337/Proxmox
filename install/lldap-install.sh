@@ -18,6 +18,7 @@ msg_info "Installing Dependencies"
 $STD apt-get install -y curl
 $STD apt-get install -y sudo
 $STD apt-get install -y mc
+$STD apt-get install -y gpg
 msg_ok "Installed Dependencies"
 
 msg_info "Installing lldap"
@@ -30,11 +31,11 @@ fi
 DISTRO_VER=$(less /etc/os-release | grep "^VERSION_ID=")
 DISTRO_VER="${DISTRO_VER:12}"
 DISTRO_VER="${DISTRO_VER%%\"}"
-echo 'deb http://download.opensuse.org/repositories/home:/Masgalor:/LLDAP/${DISTRO}_${DISTRO_VER}/ /' | tee /etc/apt/sources.list.d/home:Masgalor:LLDAP.list
-#curl -fsSL https://download.opensuse.org/repositories/home:Masgalor:LLDAP/Debian_12/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/home_Masgalor_LLDAP.gpg > /dev/null
+echo "deb http://download.opensuse.org/repositories/home:/Masgalor:/LLDAP/${DISTRO}_${DISTRO_VER}/ /" | tee /etc/apt/sources.list.d/home:Masgalor:LLDAP.list
 curl -fsSL https://download.opensuse.org/repositories/home:Masgalor:LLDAP/${DISTRO}_${DISTRO_VER}/Release.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/home_Masgalor_LLDAP.gpg
 $STD apt update
 $STD apt install -y lldap
+systemctl enable -q --now lldap
 msg_ok "Installed lldap"
 
 motd_ssh
