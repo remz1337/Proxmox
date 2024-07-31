@@ -22,7 +22,9 @@ msg_ok "Installed Dependencies"
 
 msg_info "Installing lldap"
 DISTRO="Debian"
-if [ "$var_os" == "ubuntu" ]; then
+os=$(less /etc/os-release | grep "^ID=")
+os="${os:3}"
+if [ "$os" == "ubuntu" ]; then
   DISTRO="Ubuntu"
 fi
 echo 'deb http://download.opensuse.org/repositories/home:/Masgalor:/LLDAP/${DISTRO}_${var_version}/ /' | tee /etc/apt/sources.list.d/home:Masgalor:LLDAP.list
