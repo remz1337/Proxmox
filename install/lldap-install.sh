@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2021-2024 tteck
+# Author: tteck (tteckster)
+# Co-Author: remz1337
+# License: MIT
+# https://github.com/tteck/Proxmox/raw/main/LICENSE
+
+source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
+color
+verb_ip6
+catch_errors
+setting_up_container
+network_check
+update_os
+
+msg_info "Installing Dependencies"
+$STD apt-get install -y curl
+$STD apt-get install -y sudo
+$STD apt-get install -y mc
+msg_ok "Installed Dependencies"
+
+msg_info "Installing lldap"
+DISTRO="Debian"
+if [ "$var_os" == "ubuntu" ]; then
+  DISTRO="Ubuntu"
+fi
+echo 'deb http://download.opensuse.org/repositories/home:/Masgalor:/LLDAP/${DISTRO}_${var_version}/ /' | tee /etc/apt/sources.list.d/home:Masgalor:LLDAP.list
+#curl -fsSL https://download.opensuse.org/repositories/home:Masgalor:LLDAP/Debian_12/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/home_Masgalor_LLDAP.gpg > /dev/null
+curl -fsSL https://download.opensuse.org/repositories/home:Masgalor:LLDAP/${DISTRO}_${var_version}/Release.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/home_Masgalor_LLDAP.gpg
+$STD apt update
+$STD apt install -y lldap
+msg_ok "Installed lldap"
+
+motd_ssh
+customize
+
+msg_info "Cleaning up"
+$STD apt-get -y autoremove
+$STD apt-get -y autoclean
+msg_ok "Cleaned"
