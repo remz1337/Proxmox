@@ -1,6 +1,6 @@
 # This function is called when the user decides to exit the script. It clears the screen and displays an exit message.
 exit-script() {
-  clear
+#  clear
   echo -e "⚠  User exited script \n"
   exit
 }
