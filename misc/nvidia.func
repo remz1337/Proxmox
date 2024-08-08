@@ -36,7 +36,7 @@ check_nvidia_drivers_version() {
 
 check_cuda_version(){
   nvidia_installed=$(check_nvidia_drivers_installed)
-  if [ $nvidia_installed == 1 ]; then
+  if [ $nvidia_installed == 0 ]; then
     echo "NVIDIA drivers not found!"
     exit-script
   fi
