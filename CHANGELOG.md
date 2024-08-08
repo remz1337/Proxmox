@@ -7,10 +7,24 @@
 
 <h3 align="center">All notable changes to this project will be documented in this file.</h3>
 
-- Be cautious of copycat or coat-tailing sites that exploit the project's popularity with potentially malicious intent. Please only trust information from https://Helper-Scripts.com/ or https://tteck.github.io/Proxmox/.
+> [!WARNING]
+Be cautious of copycat or coat-tailing sites that exploit the project's popularity with potentially malicious intent. Please only trust information from https://Helper-Scripts.com/ or https://tteck.github.io/Proxmox/.
 
 - All LXC instances created using this repository come pre-installed with Midnight Commander, which is a command-line tool (`mc`) that offers a user-friendly file and directory management interface for the terminal environment.
 
+## 2024-08-06
+
+### Changed
+
+- **lldap LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/lldap-install.sh)
+  - NEW Script
+
+## 2024-07-26
+
+### Changed
+
+- **Gitea LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/gitea-install.sh)
+  - NEW Script
 
 ## 2024-06-30
 
@@ -23,9 +37,9 @@
 
 ### Changed
 
-- **Kubo LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/kubo-install.sh)
+- **Kubo LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/kubo-install.sh)
   - NEW Script
-- **RabbitMQ LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/rabbitmq-install.sh)
+- **RabbitMQ LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/rabbitmq-install.sh)
   - NEW Script
 - **Scrutiny LXC**
   - Removed from website, broken.
@@ -41,27 +55,27 @@
 
 ### Changed
 
-- **MySpeed LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/myspeed-install.sh)
+- **MySpeed LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/myspeed-install.sh)
   - NEW Script
 
 ## 2024-06-13
 
 ### Changed
 
-- **PeaNUT LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/peanut-install.sh)
+- **PeaNUT LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/peanut-install.sh)
   - NEW Script
 - **Website**
   - If the Changelog has changed recently, the link on the website will pulse.
-- **Spoolman LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/spoolman-install.sh)
+- **Spoolman LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/spoolman-install.sh)
   - NEW Script
 
 ## 2024-06-12
 
 ### Changed
 
-- **MeTube LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/metube-install.sh)
+- **MeTube LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/metube-install.sh)
   - NEW Script
-- **Matterbridge LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/matterbridge-install.sh)
+- **Matterbridge LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/matterbridge-install.sh)
   - NEW Script
 - **Website**
   - Reopen the gh-pages site (https://tteck.github.io/Proxmox/) 
@@ -70,14 +84,14 @@
 
 ### Changed
 
-- **Zabbix LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/zabbix-install.sh)
+- **Zabbix LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/zabbix-install.sh)
   - NEW Script
 
 ## 2024-06-06
 
 ### Changed
 
-- **Petio LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/petio-install.sh)
+- **Petio LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/petio-install.sh)
   - NEW Script
 - **Website**
   - Important notices will now be displayed on the landing page.
@@ -86,7 +100,7 @@
 
 ### Changed
 
-- **FlareSolverr LXC** [(View Source)](https://raw.githubusercontent.com/tteck/Proxmox/main/install/flaresolverr-install.sh)
+- **FlareSolverr LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/flaresolverr-install.sh)
   - NEW Script
 
 ## 2024-05-31
