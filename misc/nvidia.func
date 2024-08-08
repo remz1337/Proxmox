@@ -1,14 +1,10 @@
 # This function checks if nvidia drivers are installed
 check_nvidia_drivers() {
   #### Check if nvidia drivers are installed
-  NVSMI=$(nvidia-smi -h 2>&1 | sed 1q)
+  #NVSMI=$(nvidia-smi -h 2>&1 | sed 1q)
   #NVIDIA System Management Interface -- v535.154.05
-
-  if ! echo $NVSMI | grep -Fq "NVIDIA System Management Interface"; then
+  if ! command -v nvidia-smi &> /dev/null; then
     echo "NVIDIA drivers not found!"
-    #apt-get update
-    #apt-get install pve-headers
-    #Install drivers...
     exit-script
   fi
 
@@ -23,6 +19,11 @@ check_nvidia_drivers() {
 }
 
 check_cuda_version(){
+  if ! command -v nvidia-smi &> /dev/null; then
+    echo "NVIDIA drivers not found!"
+    exit-script
+  fi
+
   NVD_VER_CUDA=$(nvidia-smi --version | grep CUDA | cut -d ":" -f 2 | sed "s| ||g")
   NVD_MAJOR_CUDA=${NVD_VER_CUDA%%.*}
 
