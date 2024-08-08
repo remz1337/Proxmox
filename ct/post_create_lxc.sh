@@ -121,7 +121,7 @@ fi
 if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
   source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
-  check_nvidia_drivers
+  check_nvidia_drivers_version
   gpu_id=$(select_nvidia_gpu)
   gpu_lxc_passthrough $gpu_id
   #spinner &
