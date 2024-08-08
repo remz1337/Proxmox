@@ -1,9 +1,25 @@
-# This function checks if nvidia drivers are installed
-check_nvidia_drivers() {
+# This function is called when the user decides to exit the script. It clears the screen and displays an exit message.
+exit-script() {
+  clear
+  echo -e "⚠  User exited script \n"
+  exit
+}
+
+check_nvidia_drivers_installed(){
   #### Check if nvidia drivers are installed
   #NVSMI=$(nvidia-smi -h 2>&1 | sed 1q)
   #NVIDIA System Management Interface -- v535.154.05
   if ! command -v nvidia-smi &> /dev/null; then
+    echo 0
+  else
+    echo 1
+  fi
+}
+
+# This function checks if nvidia drivers are installed
+check_nvidia_drivers_version() {
+  nvidia_installed=$(check_nvidia_drivers_installed)
+  if [ $nvidia_installed == 0 ]; then
     echo "NVIDIA drivers not found!"
     exit-script
   fi
@@ -19,7 +35,8 @@ check_nvidia_drivers() {
 }
 
 check_cuda_version(){
-  if ! command -v nvidia-smi &> /dev/null; then
+  nvidia_installed=$(check_nvidia_drivers_installed)
+  if [ $nvidia_installed == 1 ]; then
     echo "NVIDIA drivers not found!"
     exit-script
   fi

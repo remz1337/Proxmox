@@ -106,8 +106,9 @@ echo "tmpfs   /tmp/cache      tmpfs   defaults        0       0" >> /etc/fstab
 msg_ok "Installed Frigate $RELEASE"
 
 source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
-check_nvidia_drivers
-if [ ! -z $NVD_VER ]; then
+nvidia_installed=$(check_nvidia_drivers_installed)
+if [ $nvidia_installed == 1 ]; then
+  check_nvidia_drivers_version
   echo -e "Nvidia drivers detected"
   msg_info "Installing Nvidia Dependencies"
   os=""
