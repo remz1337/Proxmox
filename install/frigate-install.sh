@@ -152,7 +152,8 @@ if [ $nvidia_installed == 1 ]; then
   $STD wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
   $STD dpkg -i nv-tensorrt-local-repo-amd64.deb
   #Nvidia only provides DEB package for Ubuntu, but still works with Debian
-  cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
+  #cp /var/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
+  cp /var/nv-tensorrt-local-repo-*/nv-tensorrt-local-*-keyring.gpg /usr/share/keyrings/
   rm nv-tensorrt-local-repo-amd64.deb
   $STD apt update
   # Needed on top of the python install for the NvInfer.h header
