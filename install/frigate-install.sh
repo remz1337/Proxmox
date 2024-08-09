@@ -144,7 +144,11 @@ if [ $nvidia_installed == 1 ]; then
   $STD pip3 install --extra-index-url 'https://pypi.nvidia.com' numpy tensorrt cuda-python cython nvidia-cuda-runtime-cu12 nvidia-cuda-runtime-cu11 nvidia-cublas-cu11 nvidia-cudnn-cu11 onnx protobuf
   TRT_VER=$(pip freeze | grep tensorrt== | sed "s|tensorrt==||g")
   TRT_MAJOR=${TRT_VER%%.*}
-  trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
+  #There can be slight mismatch between the installed drivers' CUDA version and the available download link, so dynamically retrieve the right link using the latest CUDA version mentioned in the TensorRT documentation
+  trt_cuda=$(curl --silent https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html#installing-debian | grep "https://developer.nvidia.com/cuda-toolkit-archive" | grep "${NVD_MAJOR_CUDA}.. update" | head -n1)
+  trt_cuda=$(echo "$trt_cuda" | sed 's|.*rect">||' | sed 's|<.*||' | sed 's| update |_|')
+  #trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
+  trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${trt_cuda}.0-1_amd64.deb"
   $STD wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
   $STD dpkg -i nv-tensorrt-local-repo-amd64.deb
   #Nvidia only provides DEB package for Ubuntu, but still works with Debian
