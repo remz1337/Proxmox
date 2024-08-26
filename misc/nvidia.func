@@ -156,7 +156,7 @@ gpu_lxc_passthrough() {
   echo "lxc.mount.entry: /dev/nvidia${nvidianum} dev/nvidia${nvidianum} none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
   echo "lxc.mount.entry: /dev/nvidiactl dev/nvidiactl none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
   echo "lxc.mount.entry: /dev/nvidia-uvm dev/nvidia-uvm none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
-  echo "lxc.mount.entry: /dev/nvidia-modeset dev/nvidia-modeset none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
+  #echo "lxc.mount.entry: /dev/nvidia-modeset dev/nvidia-modeset none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
   echo "lxc.mount.entry: /dev/nvidia-uvm-tools dev/nvidia-uvm-tools none bind,optional,create=file" >> /etc/pve/lxc/${CT_ID}.conf
   echo "lxc.mount.entry: /dev/dri dev/dri none bind,optional,create=dir" >> /etc/pve/lxc/${CT_ID}.conf
 }
