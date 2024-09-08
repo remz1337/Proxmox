@@ -31,12 +31,12 @@ curl -o SAQLottery.tar.gz -fsSLO https://api.github.com/repos/remz1337/SAQLotter
 tar -xzf SAQLottery.tar.gz -C /opt/SAQLottery/ --strip-components 1
 rm SAQLottery.tar.gz
 cd -
-msg_ok "Downloaded Web-Vault ${RELEASE}"
+msg_ok "Downloaded SAQLottery ${RELEASE}"
 
 msg_info "Installing SAQLottery ${RELEASE}"
 cd /opt/SAQLottery
-$STD install_deps.sh
-$STD install.sh
+$STD bash install_deps.sh
+$STD bash install.sh
 msg_ok "Installed SAQLottery ${RELEASE}"
 
 motd_ssh

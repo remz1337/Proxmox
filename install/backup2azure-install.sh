@@ -31,12 +31,12 @@ curl -o Backup2Azure.tar.gz -fsSLO https://api.github.com/repos/remz1337/Backup2
 tar -xzf Backup2Azure.tar.gz -C /opt/Backup2Azure/ --strip-components 1
 rm Backup2Azure.tar.gz
 cd -
-msg_ok "Downloaded Web-Vault ${RELEASE}"
+msg_ok "Downloaded Backup2Azure ${RELEASE}"
 
 msg_info "Installing Backup2Azure ${RELEASE}"
 cd /opt/Backup2Azure
-$STD install_deps.sh
-$STD install.sh
+$STD bash install_deps.sh
+$STD bash install.sh
 msg_ok "Installed Backup2Azure ${RELEASE}"
 
 motd_ssh
