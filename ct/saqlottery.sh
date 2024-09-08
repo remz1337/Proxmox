@@ -20,9 +20,9 @@ EOF
 header_info
 echo -e "Loading..."
 APP="SAQLottery"
-var_disk="4"
+var_disk="2"
 var_cpu="1"
-var_ram="512"
+var_ram="128"
 var_os="debian"
 var_version="12"
 variables
