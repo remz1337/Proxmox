@@ -41,6 +41,7 @@ Here's a shortlist of scripts/apps that did not get merged upstream (tteck) for 
 - <a href="https://github.com/blakeblackshear/frigate">Frigate</a> with Nvidia GPU passthrough
 - <a href="https://github.com/claabs/epicgames-freegames-node">Epic Games free games</a>
 - <a href="https://github.com/AnalogJ/scrutiny">Scrutiny</a>
+- <a href="https://github.com/remz1337/SAQLottery">SAQLottery</a>
 - Nvidia drivers support (detection/installation)
 - Windows 11 Gaming VM
 
