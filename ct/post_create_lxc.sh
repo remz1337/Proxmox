@@ -135,6 +135,8 @@ if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
   #spinner &
   #SPINNER_PID=$!
   #reboot_lxc
+  sleep 10
+  echo "Sleept a bit to finalize ct config"
   pct reboot $CTID
 
   echo "SUCCESSFULLY REBOOTED!!!"
