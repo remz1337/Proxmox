@@ -134,7 +134,8 @@ if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
   echo "rebooting to apply config"
   #spinner &
   #SPINNER_PID=$!
-  reboot_lxc
+  #reboot_lxc
+  pct reboot $CTID
 
   echo "SUCCESSFULLY REBOOTED!!!"
 
