@@ -134,6 +134,11 @@ if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
   echo "rebooting to apply config"
   #spinner &
   #SPINNER_PID=$!
+  
+  #Comment out /dev/dri config from tteck's setup
+  sed -e '/^dev/ s/^#*/#/' -i /etc/pve/lxc/${CTID}.conf
+  echo "COMMENTED OUT TTECK's CONFIG"
+  
   #reboot_lxc
   sleep 5
   echo "Sleept a bit to finalize ct config"
