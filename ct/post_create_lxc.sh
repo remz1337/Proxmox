@@ -17,6 +17,7 @@ default_setup() {
 
 reboot_lxc(){
   msg_info "Rebooting LXC"
+  echo "About to pct reboot $CTID --debug"
   pct reboot $CTID
   sleep 1
   msg_ok "Rebooted LXC"
@@ -122,13 +123,20 @@ fi
 
 if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
   source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
+  echo "Stopping spinner"
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
+  echo "Checking nvidia drivers on host"
   check_nvidia_drivers_version
+  echo "selecting nvidia gpu"
   gpu_id=$(select_nvidia_gpu)
+  echo "configuring gpu passthrough"
   gpu_lxc_passthrough $gpu_id
+  echo "rebooting to apply config"
   #spinner &
   #SPINNER_PID=$!
   reboot_lxc
+
+  echo "SUCCESSFULLY REBOOTED!!!"
 
   if [ -z $NVD_VER ]; then
     echo "No Nvidia drivers detected on host."
