@@ -51,7 +51,7 @@ function default_settings() {
   NVIDIA_PASSTHROUGH="yes"
   VLAN=""
   SSH="no"
-  VERB="no"
+  VERB="yes"
   echo_default
 }
 
