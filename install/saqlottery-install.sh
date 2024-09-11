@@ -20,24 +20,24 @@ $STD apt-get install -y sudo
 $STD apt-get install -y mc
 msg_ok "Installed Dependencies"
 
-RELEASE=$(curl -s https://api.github.com/repos/remz1337/Backup2Azure/releases/latest |
+RELEASE=$(curl -s https://api.github.com/repos/remz1337/SAQLottery/releases/latest |
   grep "tag_name" |
   awk '{print substr($2, 2, length($2)-3) }')
 
-msg_info "Downloading Backup2Azure ${RELEASE}"
-mkdir -p /opt/Backup2Azure
+msg_info "Downloading SAQLottery ${RELEASE}"
+mkdir -p /opt/SAQLottery
 cd /tmp
-curl -o Backup2Azure.tar.gz -fsSLO https://api.github.com/repos/remz1337/Backup2Azure/tarball/$RELEASE
-tar -xzf Backup2Azure.tar.gz -C /opt/Backup2Azure/ --strip-components 1
-rm Backup2Azure.tar.gz
+curl -o SAQLottery.tar.gz -fsSLO https://api.github.com/repos/remz1337/SAQLottery/tarball/$RELEASE
+tar -xzf SAQLottery.tar.gz -C /opt/SAQLottery/ --strip-components 1
+rm SAQLottery.tar.gz
 cd -
-msg_ok "Downloaded Backup2Azure ${RELEASE}"
+msg_ok "Downloaded SAQLottery ${RELEASE}"
 
-msg_info "Installing Backup2Azure ${RELEASE}"
-cd /opt/Backup2Azure
+msg_info "Installing SAQLottery ${RELEASE}"
+cd /opt/SAQLottery
 $STD bash install_deps.sh
 $STD bash install.sh
-msg_ok "Installed Backup2Azure ${RELEASE}"
+msg_ok "Installed SAQLottery ${RELEASE}"
 
 motd_ssh
 customize
@@ -46,5 +46,3 @@ msg_info "Cleaning up"
 $STD apt-get -y autoremove
 $STD apt-get -y autoclean
 msg_ok "Cleaned"
-
-echo -e "Update configuration in ${BL}/etc/Backup2Azure/backup2azure.conf${CL}"
