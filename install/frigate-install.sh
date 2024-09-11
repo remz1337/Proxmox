@@ -145,8 +145,9 @@ if [ $nvidia_installed == 1 ]; then
   TRT_VER=$(pip freeze | grep tensorrt== | sed "s|tensorrt==||g")
   TRT_MAJOR=${TRT_VER%%.*}
   #There can be slight mismatch between the installed drivers' CUDA version and the available download link, so dynamically retrieve the right link using the latest CUDA version mentioned in the TensorRT documentation
-  trt_cuda=$(curl --silent https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html#installing-debian | grep "https://developer.nvidia.com/cuda-toolkit-archive" | grep "${NVD_MAJOR_CUDA}.. update" | head -n1)
-  trt_cuda=$(echo "$trt_cuda" | sed 's|.*rect">||' | sed 's|<.*||' | sed 's| update |_|')
+  trt_cuda=$(curl --silent https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html#installing-debian | grep "https://developer.nvidia.com/cuda-toolkit-archive" | head -n1)
+  trt_cuda=$(echo "$trt_cuda" | sed 's|.*rect">||' | sed 's|<.*||' | sed 's| update .*||')
+  trt_cuda=${trt_cuda}_1
   #trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${NVD_VER_CUDA}_1.0-1_amd64.deb"
   trt_url="https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TRT_VER}/local_repo/nv-tensorrt-local-repo-ubuntu2204-${TRT_VER}-cuda-${trt_cuda}.0-1_amd64.deb"
   $STD wget -qO nv-tensorrt-local-repo-amd64.deb $trt_url
