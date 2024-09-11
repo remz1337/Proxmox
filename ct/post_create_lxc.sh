@@ -121,6 +121,8 @@ if [[ "${PHS_POSTFIX_SAT}" == "yes" ]]; then
 fi
 
 if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
+  #Fix container unable to start issue by commenting out /dev/dri lines (from tteck's setup)
+  sed -e '/^dev/ s/^#*/#/' -i /etc/pve/lxc/${CTID}.conf
   source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
   if [ -n "$SPINNER_PID" ] && ps -p $SPINNER_PID > /dev/null; then kill $SPINNER_PID > /dev/null; fi
   check_nvidia_drivers_version
