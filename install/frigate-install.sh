@@ -128,10 +128,10 @@ if [ $nvidia_installed == 1 ]; then
   $STD apt update
   $STD add-apt-repository contrib
   rm cuda-keyring_1.1-1_all.deb
-  if grep -qR "Acquire::http::Proxy" /etc/apt/apt.conf.d/ && [ -f "/etc/apt/sources.list.d/cuda-${os}-x86_64.list" ]; then
-    sed -i "s|https://developer|http://HTTPS///developer|g" /etc/apt/sources.list.d/cuda-${os}-x86_64.list
-  fi
-  $STD apt update && sleep 1
+#  if grep -qR "Acquire::http::Proxy" /etc/apt/apt.conf.d/ && [ -f "/etc/apt/sources.list.d/cuda-${os}-x86_64.list" ]; then
+#    sed -i "s|https://developer|http://HTTPS///developer|g" /etc/apt/sources.list.d/cuda-${os}-x86_64.list
+#  fi
+#  $STD apt update && sleep 1
   $STD apt update
   $STD apt install -qqy "cuda-toolkit-$TARGET_CUDA_VER"
   $STD apt install -qqy "cudnn-cuda-$NVD_MAJOR_CUDA"
