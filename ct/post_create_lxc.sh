@@ -7,9 +7,12 @@
 # This function sets up the Container OS by generating the locale, setting the timezone, and checking the network connection
 default_setup() {
   msg_info "Setting up Container"
-  pct exec $CTID -- /bin/bash -c "apt update -qq &>/dev/null"
+  #pct exec $CTID -- /bin/bash -c "apt update -qq &>/dev/null"
+  pct exec $CTID -- /bin/bash -c "apt update"
   sleep 1
-  pct exec $CTID -- /bin/bash -c "apt install -qqy curl &>/dev/null"
+  #pct exec $CTID -- /bin/bash -c "apt install -qqy curl &>/dev/null"
+  pct exec $CTID -- /bin/bash -c "apt install -y curl"
+  echo "Successfully installed curl!"
   lxc-attach -n "$CTID" -- bash -c "source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/install.func) && color && verb_ip6 && catch_errors && setting_up_container && network_check && update_os" || exit
   msg_ok "Set up Container"
 }
