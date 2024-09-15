@@ -43,6 +43,7 @@ echo -e "${BL}Customizing LXC creation${CL}"
 
 
 #Call default setup to have local, timezone and update APT
+reboot_lxc
 default_setup
 
 #Install APT proxy client
