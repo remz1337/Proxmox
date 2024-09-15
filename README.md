@@ -34,7 +34,7 @@ This fork aims to add support for Nvidia GPU. The scripts are not guaranteed to 
 - Motherboard: Asrock B450M Pro4-F
 - RAM: 2x16GB HyperX (non ECC)
 
-## Extra scripts
+# Extra scripts
 Here's a shortlist of scripts/apps that did not get merged upstream (tteck) for various reasons:
 - <a href="https://github.com/CollaboraOnline/online">Collabora Online</a>
 - <a href="https://github.com/remz1337/Backup2Azure">Backup2Azure</a>

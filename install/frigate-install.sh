@@ -168,7 +168,7 @@ if [ $nvidia_installed == 1 ]; then
   #curl -s https://raw.githubusercontent.com/remz1337/frigate/dev/frigate/detectors/plugins/tensorrt.py > /opt/frigate/frigate/detectors/plugins/tensorrt.py
   msg_ok "Installed TensorRT"
 
-  msg_info "Installing TensorRT Object Detection Model (Resilience)"
+  msg_info "Installing TensorRT Object Detection Model (Patience)"
   cp -a /opt/frigate/docker/tensorrt/detector/rootfs/. /
   mkdir -p /usr/local/src/tensorrt_demos
   cd /usr/local/src
@@ -207,10 +207,10 @@ model:
   width: 416
   height: 416
 EOF
-  msg_ok "Installed TensorRT Object Detection Model (Resilience)"
+  msg_ok "Installed TensorRT Object Detection Model (Patience)"
 elif grep -q -o -m1 'avx[^ ]*' /proc/cpuinfo; then
-  msg_ok "AVX Support Detected"
-  msg_info "Installing Openvino Object Detection Model (Resilience)"
+  msg_ok "AVX support detected"
+  msg_info "Installing Openvino Object Detection Model (Patience)"
   $STD pip install -r /opt/frigate/docker/main/requirements-ov.txt
   cd /opt/frigate/models
   export ENABLE_ANALYTICS=NO
