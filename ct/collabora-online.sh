@@ -1,26 +1,27 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
-# Author: MickLesk (Canbiz)
+# Author: tteck (tteckster)
+# Co-Author: remz1337
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
 function header_info {
 clear
 cat <<"EOF"
-    __  ___      __  __            __         _     __         
-   /  |/  /___ _/ /_/ /____  _____/ /_  _____(_)___/ /___ ____ 
-  / /|_/ / __ `/ __/ __/ _ \/ ___/ __ \/ ___/ / __  / __ `/ _ \
- / /  / / /_/ / /_/ /_/  __/ /  / /_/ / /  / / /_/ / /_/ /  __/
-/_/  /_/\__,_/\__/\__/\___/_/  /_.___/_/  /_/\__,_/\__, /\___/ 
-                                                  /____/                                      
+   ______      ____      __                    
+  / ____/___  / / /___ _/ /_  ____  _________ _
+ / /   / __ \/ / / __ `/ __ \/ __ \/ ___/ __ `/
+/ /___/ /_/ / / / /_/ / /_/ / /_/ / /  / /_/ / 
+\____/\____/_/_/\__,_/_.___/\____/_/   \__,_/  
+                                               
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="Matterbridge"
-var_disk="4"
-var_cpu="1"
+APP="Collabora"
+var_disk="12"
+var_cpu="2"
 var_ram="1024"
 var_os="debian"
 var_version="12"
@@ -53,10 +54,13 @@ function default_settings() {
 }
 
 function update_script() {
-header_info
-if [[ ! -d /root/Matterbridge ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-msg_error "Update via the Matterbridge UI"
-exit
+  header_info
+  if [[ ! -f /lib/systemd/system/coolwsd.service ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+  msg_info "Updating ${APP} LXC"
+  apt-get update &>/dev/null
+  apt-get -y upgrade &>/dev/null
+  msg_ok "Updated ${APP} LXC"
+  exit
 }
 
 start
@@ -64,5 +68,4 @@ build_container
 description
 
 msg_ok "Completed Successfully!\n"
-echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:8283${CL} \n"
+echo -e "https://github.com/tteck/Proxmox/discussions/3651"
