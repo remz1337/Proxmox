@@ -14,7 +14,7 @@ default_setup() {
   #pct exec $CTID -- /bin/bash -c "apt install -y curl"
   #echo "Successfully installed curl!"
   #lxc-attach -n "$CTID" -- bash -c "source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/install.func) && color && verb_ip6 && catch_errors && setting_up_container && network_check && update_os" || exit
-  lxc-attach -n "$CTID" -- bash -c "source <$(wget -qLO - https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/install.func) && color && verb_ip6 && catch_errors && setting_up_container && network_check && update_os" || exit
+  lxc-attach -n "$CTID" -- bash -c "source /dev/stdin <<< $(wget -qLO - https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/install.func) && color && verb_ip6 && catch_errors && setting_up_container && network_check && update_os" || exit
   echo "Successfully set up container in post_create without curl"
   #pct exec $CTID -- /bin/bash -c "apt install -qqy curl &>/dev/null"
   pct exec $CTID -- /bin/bash -c "apt install -y curl"
