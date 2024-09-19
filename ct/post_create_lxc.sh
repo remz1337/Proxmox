@@ -148,7 +148,7 @@ if [[ "${NVIDIA_PASSTHROUGH}" == "yes" ]]; then
   msg_info "Installing Nvidia Drivers"
   #DRIVER_VERSION="550.67"
   EXE_FILE="NVIDIA-Linux-x86_64-${NVD_VER}.run"
-  DOWNLOAD_URL="https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVD_VER}/${EXE_FILE}"
+  DOWNLOAD_URL="https://download.nvidia.com/XFree86/Linux-x86_64/${NVD_VER}/${EXE_FILE}"
 
   pct exec $CTID -- /bin/bash -c "rm -f NVIDIA-Linux-x86_64-*.run"
   pct exec $CTID -- /bin/bash -c "wget -q $DOWNLOAD_URL"
