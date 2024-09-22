@@ -29,8 +29,14 @@ check_nvidia_drivers_version() {
 
   if [ $NVD_MAJOR -le 500 ]; then
     echo "Old NVIDIA drivers detected: $NVD_VER"
-    echo "Ensure you have the latest drivers installed (>500)"
-    exit-script
+    echo "Scripts might not work with older drivers. It is recommended to use the latest drivers (>500)"
+	read -r -p "Old Nvidia drivers detected, would you like to continue anyway? <y/N> " prompt
+    if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
+      echo -e " ⚠️  ${RD}Expect issues without latest drivers${CL}"
+    else
+      echo -e " Exiting script"
+      exit-script
+    fi
   fi
 }
 
@@ -46,8 +52,14 @@ check_cuda_version(){
 
   if [ $NVD_MAJOR_CUDA -lt 11 ]; then
     echo "Old CUDA drivers detected: $NVD_VER_CUDA"
-    echo "Ensure you have the latest drivers installed (>500)"
-    exit-script
+    echo "Scripts might not work with older drivers. It is recommended to use the latest drivers (>500)"
+	read -r -p "Old CUDA drivers detected, would you like to continue anyway? <y/N> " prompt
+    if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
+      echo -e " ⚠️  ${RD}Expect issues without latest drivers${CL}"
+    else
+      echo -e " Exiting script"
+      exit-script
+    fi
   fi
 }
 
