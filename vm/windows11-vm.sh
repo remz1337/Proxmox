@@ -574,6 +574,7 @@ qm create $VMID -agent 1${MACHINE} -bios ovmf${CPU_TYPE} -cores $CORE_COUNT -cpu
   -efidisk0 ${STORAGE}:1,efitype=4m,pre-enrolled-keys=1 \
   -scsi0 ${STORAGE}:${DISK_SIZE},${DISK_CACHE}${THIN} \
   -tpmstate0 ${STORAGE}:1,version=v2.0 \
+  -numa 1 \
   -sata0 /var/lib/vz/template/iso/${WIN11_ISO},media=cdrom \
   -sata1 /var/lib/vz/template/iso/${VIRTIO_ISO},media=cdrom \
   -smbios1 uuid=$(od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}') \
