@@ -108,7 +108,7 @@ source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nv
 nvidia_installed=$(check_nvidia_drivers_installed)
 if [ $nvidia_installed == 1 ]; then
   check_nvidia_drivers_version
-  echo -e "Nvidia drivers detected"
+  echo -e "Nvidia drivers detected. Version ${NVD_VER}"
   msg_info "Installing Nvidia Dependencies"
   os=""
   if [ $PCT_OSTYPE == "debian" ]; then
