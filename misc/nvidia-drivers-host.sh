@@ -46,13 +46,17 @@ function install_nvidia_drivers_lxc() {
 header_info
 echo "Loading..."
 
+if ! (whiptail --backtitle "Proxmox VE Helper Scripts" --title "Nvidia Drivers" --yesno "Installing Nvidia drivers requires to reboot the host. Continue?" 10 58); then
+  echo -e "⚠  User exited script \n"
+  exit
+fi
+
 source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
 nvidia_installed=$(check_nvidia_drivers_installed)
 if [ $nvidia_installed == 1 ]; then
   check_nvidia_drivers_version
   echo -e "Nvidia drivers detected. Version ${NVD_VER}"
 fi
-
 
 #Make sure host as appropriate dependencies
 apt install -y dkms pve-headers wget
@@ -108,7 +112,12 @@ fi
 #Dependencies for OpenGL/Vulkan
 apt install -y libglvnd-dev libvulkan1 pkg-config
 
-bash "$EXE_FILE" -q -a -n -s --dkms
+#/usr/bin/nvidia-uninstall
+#rmmod nvidia-uvm
+#sleep 1
+#Some additionnal arguments to test
+#--skip-module-load --skip-module-unload --allow-installation-with-running-driver --rebuild-initramfs
+bash "$EXE_FILE" -q -a -n -s --dkms --allow-installation-with-running-driver
 
 #echo "Installation of NVIDIA drivers complete"
 
@@ -153,3 +162,8 @@ rm NVIDIA-Linux-x86_64-*.run
 
 header_info
 echo -e "${GN} Finished, Nvidia drivers installed.${CL}\n"
+
+if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "Nvidia Drivers" --yesno "Nvidia drivers installation complete. Are you ready to reboot the host?" 10 58); then
+  echo -e "⚠  Rebooting \n"
+  reboot
+fi
