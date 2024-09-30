@@ -73,11 +73,12 @@ function update_script() {
 
   header_info
   if [ "$UPD" == "1" ]; then
-	read -r -p "\n ⚠️  Vaultwarden updates need 4vCPU and 4096MB RAM. Does the container have enough resources to complete the update? <y/N> " prompt
+	echo -e "\n ⚠️  Vaultwarden updates need 4vCPU and 4096MB RAM \n"
+	read -r -p "Did you allocate resources to complete the update? <y/N> " prompt
     if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
-      echo -e " ⚠️  ${RD}Expect issues with update${CL}"
+      echo -e "Proceeding with current resources"
     else
-      echo -e " Increase container resources"
+      echo -e " ⚠️  ${RD}Increase container resources${CL}"
       exit 1
     fi
 
