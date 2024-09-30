@@ -22,8 +22,37 @@ RD=$(echo "\033[01;31m")
 CM='\xE2\x9C\x94\033'
 GN=$(echo "\033[1;92m")
 CL=$(echo "\033[m")
+
+function install_nvidia_drivers_lxc() {
+  container=$1
+  header_info
+  name=$(pct exec "$container" hostname)
+  os=$(pct config "$container" | awk '/^ostype/ {print $2}')
+  if [[ "$os" == "ubuntu" || "$os" == "debian" || "$os" == "fedora" ]]; then
+    disk_info=$(pct exec "$container" df /boot | awk 'NR==2{gsub("%","",$5); printf "%s %.1fG %.1fG %.1fG", $5, $3/1024/1024, $2/1024/1024, $4/1024/1024 }')
+    read -ra disk_info_array <<<"$disk_info"
+    echo -e "${BL}[Info]${GN} Installing Nvidia to ${BL}$container${CL} : ${GN}$name${CL} - ${YW}Boot Disk: ${disk_info_array[0]}% full [${disk_info_array[1]}/${disk_info_array[2]} used, ${disk_info_array[3]} free]${CL}\n"
+  else
+    echo -e "${BL}[Info]${GN} Installing Nvidia to ${BL}$container${CL} : ${GN}$name${CL} - ${YW}[No disk info for ${os}]${CL}\n"
+  fi
+  
+  pct exec "$container" -- bash -c "apt install -yq libglvnd-dev libvulkan1 pkg-config"
+  pct push "$container" $EXE_FILE /tmp/$EXE_FILE
+  pct exec "$container" -- bash -c "bash /tmp/$EXE_FILE -q -a -n -s --no-kernel-module"
+  pct exec "$container" -- bash -c "rm /tmp/$EXE_FILE"
+}
+
+
 header_info
 echo "Loading..."
+
+source <(curl -s https://raw.githubusercontent.com/remz1337/Proxmox/remz/misc/nvidia.func)
+nvidia_installed=$(check_nvidia_drivers_installed)
+if [ $nvidia_installed == 1 ]; then
+  check_nvidia_drivers_version
+  echo -e "Nvidia drivers detected. Version ${NVD_VER}"
+fi
+
 
 #Make sure host as appropriate dependencies
 apt install -y dkms pve-headers wget
@@ -31,22 +60,90 @@ apt install -y dkms pve-headers wget
 #Clean up old files
 rm NVIDIA-Linux-x86_64-*.run
 
-DRIVER_VERSION="550.67"
-EXE_FILE="NVIDIA-Linux-x86_64-$DRIVER_VERSION.run"
-DOWNLOAD_URL="https://us.download.nvidia.com/XFree86/Linux-x86_64/$DRIVER_VERSION/$EXE_FILE"
+#DRIVER_VERSION="550.67"
+LATEST_VERSION=$(curl -s https://download.nvidia.com/XFree86/Linux-x86_64/latest.txt)
+INSTALL_VERSION=${LATEST_VERSION% *}
+
+echo -e "Nvidia latest drivers version: ${INSTALL_VERSION}"
+
+#NVD_MAJOR=${NVD_VER%%.*}
+NVD_MINOR=${NVD_VER#*.}
+INSTALL_MAJOR=${INSTALL_VERSION%%.*}
+INSTALL_MINOR=${INSTALL_VERSION#*.}
+
+if [ $INSTALL_MAJOR -gt $NVD_MAJOR ]; then
+  echo "New major version available"
+elif [ $INSTALL_MAJOR -eq $NVD_MAJOR ] && [ $INSTALL_MINOR -gt $NVD_MINOR ]; then
+  echo "New minor version available"
+else
+  echo "Installed drivers are up to date"
+  read -r -p "Do you still want to manually install a different version? <y/N> " prompt
+  if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
+    echo -e "Proceeding with installation"
+  else
+    exit 1
+  fi
+fi
+
+if INPUT=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Enter Nvidia Drivers Version" 8 58 $INSTALL_VERSION --title "NVIDIA DRIVERS" 3>&1 1>&2 2>&3); then
+  if [ ! -z "$INPUT" ]; then
+    INSTALL_VERSION=$(echo ${INPUT,,} | tr -d ' ')
+  fi
+  echo -e "${DGN}Installing Driver Version: ${BGN}$INSTALL_VERSION${CL}"
+else
+  exit
+fi
+
+EXE_FILE="NVIDIA-Linux-x86_64-$INSTALL_VERSION.run"
+DOWNLOAD_URL="https://download.nvidia.com/XFree86/Linux-x86_64/$INSTALL_VERSION/$EXE_FILE"
 
 wget -q $DOWNLOAD_URL
 
 #Dependencies for OpenGL/Vulkan
 apt install -y libglvnd-dev libvulkan1 pkg-config
 
-bash "$EXE_FILE" --dkms
+bash "$EXE_FILE" -q -a -n -s --dkms
 
 #echo "Installation of NVIDIA drivers complete"
+
+
+#Installing in LXC
+#pct push 104 $EXE_FILE /tmp/$EXE_FILE
+
+
+whiptail --backtitle "Proxmox VE Helper Scripts" --title "Proxmox VE Nvidia Updater" --yesno "Do you want to install Nvidia drivers in selected LXC containers?" 10 58 || exit
+NODE=$(hostname)
+EXCLUDE_MENU=()
+MSG_MAX_LENGTH=0
+while read -r TAG ITEM; do
+  OFFSET=2
+  ((${#ITEM} + OFFSET > MSG_MAX_LENGTH)) && MSG_MAX_LENGTH=${#ITEM}+OFFSET
+  EXCLUDE_MENU+=("$TAG" "$ITEM " "OFF")
+done < <(pct list | awk 'NR>1')
+included_containers=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "Containers on $NODE" --checklist "\nSelect containers to install Nvidia drivers:\n" 16 $((MSG_MAX_LENGTH + 23)) 6 "${EXCLUDE_MENU[@]}" 3>&1 1>&2 2>&3 | tr -d '"') || exit
+
+for container in $(pct list | awk '{if(NR>1) print $1}'); do
+  if [[ " ${included_containers[@]} " =~ " $container " ]]; then
+    status=$(pct status $container)
+    template=$(pct config $container | grep -q "template:" && echo "true" || echo "false")
+    if [ "$template" == "false" ] && [ "$status" == "status: stopped" ]; then
+      echo -e "${BL}[Info]${GN} Starting${BL} $container ${CL} \n"
+      pct start $container
+      echo -e "${BL}[Info]${GN} Waiting For${BL} $container${CL}${GN} To Start ${CL} \n"
+      sleep 5
+      install_nvidia_drivers_lxc $container
+      echo -e "${BL}[Info]${GN} Shutting down${BL} $container ${CL} \n"
+      pct shutdown $container &
+    elif [ "$status" == "status: running" ]; then
+      install_nvidia_drivers_lxc $container
+    fi
+    sleep 1
+  fi
+done
+wait
 
 #Clean up install file to avoid backing it up
 rm NVIDIA-Linux-x86_64-*.run
 
-wait
 header_info
 echo -e "${GN} Finished, Nvidia drivers installed.${CL}\n"

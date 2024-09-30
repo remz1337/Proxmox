@@ -30,7 +30,7 @@ rm NVIDIA-Linux-x86_64-*.run
 
 DRIVER_VERSION="550.67"
 EXE_FILE="NVIDIA-Linux-x86_64-$DRIVER_VERSION.run"
-DOWNLOAD_URL="https://us.download.nvidia.com/XFree86/Linux-x86_64/$DRIVER_VERSION/$EXE_FILE"
+DOWNLOAD_URL="https://download.nvidia.com/XFree86/Linux-x86_64/$DRIVER_VERSION/$EXE_FILE"
 
 wget -q $DOWNLOAD_URL
 
