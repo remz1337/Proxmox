@@ -73,7 +73,14 @@ function update_script() {
 
   header_info
   if [ "$UPD" == "1" ]; then
-    echo -e "\n ⚠️  Ensure you set 4vCPU & 4096MiB RAM minimum!!! \n"
+	read -r -p "\n ⚠️  Vaultwarden updates need 4vCPU and 4096MB RAM. Does the container have enough resources to complete the update? <y/N> " prompt
+    if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
+      echo -e " ⚠️  ${RD}Expect issues with update${CL}"
+    else
+      echo -e " Increase container resources"
+      exit 1
+    fi
+
     msg_info "Stopping Vaultwarden"
     systemctl stop vaultwarden.service
     msg_ok "Stopped Vaultwarden"
@@ -100,7 +107,7 @@ function update_script() {
     msg_ok "Started Vaultwarden"
 
     msg_ok "$VAULT Update Successful"
-    echo -e "\n ⚠️  Ensure you set resources back to normal settings \n"
+    echo -e "\n ⚠️  Don't forget to set resources back to normal settings (1vCPU and 256MB RAM) \n"
     exit
   fi
   if [ "$UPD" == "2" ]; then
