@@ -99,6 +99,11 @@ DOWNLOAD_URL="https://download.nvidia.com/XFree86/Linux-x86_64/$INSTALL_VERSION/
 
 wget -q $DOWNLOAD_URL
 
+if [ ! -f "$EXE_FILE" ]; then
+    echo "Nvidia drivers file not found! Make sure the version is available from https://download.nvidia.com/XFree86/Linux-x86_64/"
+	exit
+fi
+
 #Dependencies for OpenGL/Vulkan
 apt install -y libglvnd-dev libvulkan1 pkg-config
 
