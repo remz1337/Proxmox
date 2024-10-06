@@ -9,20 +9,20 @@ source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build
 function header_info {
 clear
 cat <<"EOF"
-   _____                   __                    
-  / ___/____  ____  ____  / /___ ___  ____ _____ 
-  \__ \/ __ \/ __ \/ __ \/ / __ `__ \/ __ `/ __ \
- ___/ / /_/ / /_/ / /_/ / / / / / / / /_/ / / / /
-/____/ .___/\____/\____/_/_/ /_/ /_/\__,_/_/ /_/ 
-    /_/                                                         
+ _____   _       ___          
+/__  /  (_)___  / (_)___  ___ 
+  / /  / / __ \/ / / __ \/ _ \
+ / /__/ / /_/ / / / / / /  __/
+/____/_/ .___/_/_/_/ /_/\___/ 
+      /_/                                                  
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="Spoolman"
-var_disk="4"
-var_cpu="1"
-var_ram="1024"
+APP="Zipline"
+var_disk="5"
+var_cpu="2"
+var_ram="2048"
 var_os="debian"
 var_version="12"
 variables
@@ -52,42 +52,40 @@ function default_settings() {
   VERB="no"
   echo_default
 }
-
 function update_script() {
 header_info
-if [[ ! -d /opt/spoolman ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+if [[ ! -d /opt/zipline ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
 if (( $(df /boot | awk 'NR==2{gsub("%","",$5); print $5}') > 80 )); then
   read -r -p "Warning: Storage is dangerously low, continue anyway? <y/N> " prompt
   [[ ${prompt,,} =~ ^(y|yes)$ ]] || exit
 fi
-RELEASE=$(wget -q https://github.com/Donkie/Spoolman/releases/latest -O - | grep "title>Release" | cut -d " " -f 4)
+RELEASE=$(curl -s https://api.github.com/repos/diced/zipline/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
 if [[ ! -f /opt/${APP}_version.txt ]] || [[ "${RELEASE}" != "$(cat /opt/${APP}_version.txt)" ]]; then
-
-  msg_info "Stopping ${APP} Service"
-  systemctl stop spoolman
-  msg_ok "Stopped ${APP} Service"
+  msg_info "Stopping ${APP}"
+  systemctl stop zipline
+  msg_ok "${APP} Stopped"
 
   msg_info "Updating ${APP} to ${RELEASE}"
-  cd /opt
-  rm -rf spoolman_bak
-  mv spoolman spoolman_bak
-  wget -q https://github.com/Donkie/Spoolman/releases/download/${RELEASE}/spoolman.zip 
-  unzip -q spoolman.zip -d spoolman
-  cd spoolman
-  pip3 install -r requirements.txt >/dev/null 2>&1
-  wget -q https://raw.githubusercontent.com/Donkie/Spoolman/master/.env.example -O .env
+  cp /opt/zipline/.env /opt/
+  rm -R /opt/zipline
+  wget -q "https://github.com/diced/zipline/archive/refs/tags/v${RELEASE}.zip"
+  unzip -q v${RELEASE}.zip
+  mv zipline-${RELEASE} /opt/zipline
+  cd /opt/zipline
+  mv /opt/.env /opt/zipline/.env
+  yarn install &>/dev/null
+  yarn build &>/dev/null
   echo "${RELEASE}" >/opt/${APP}_version.txt
-  msg_ok "Updated ${APP} to ${RELEASE}"
+  msg_ok "Updated ${APP}"
 
-  msg_info "Starting ${APP} Service"
-  systemctl start spoolman
-  msg_ok "Started ${APP} Service"
+  msg_info "Starting ${APP}"
+  systemctl start zipline
+  msg_ok "Started ${APP}"
 
-  msg_info "Cleaning up"
-  rm -rf /opt/spoolman.zip
+  msg_info "Cleaning Up"
+  rm -rf v${RELEASE}.zip
   msg_ok "Cleaned"
-
-  msg_ok "Updated Successfully!\n"
+  msg_ok "Updated Successfully"
 else
   msg_ok "No update required. ${APP} is already at ${RELEASE}"
 fi
@@ -100,4 +98,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} Setup should be reachable by going to the following URL.
-         ${BL}http://${IP}:7912${CL} \n"
+         ${BL}http://${IP}:3000${CL} \n"

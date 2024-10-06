@@ -22,12 +22,28 @@ $STD apt-get install -y mc
 msg_ok "Installed Dependencies"
 
 msg_info "Installing FFmpeg (Patience)"
-echo "deb http://deb.debian.org/debian/ sid main" >/etc/apt/sources.list.d/sid.list
+wget -q https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb
+$STD dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+cat <<EOF >/etc/apt/sources.list.d/backports.list
+deb https://www.deb-multimedia.org bookworm main non-free
+deb https://www.deb-multimedia.org bookworm-backports main
+EOF
 $STD apt update
-DEBIAN_FRONTEND=noninteractive $STD apt install -t sid ffmpeg -y
-rm /etc/apt/sources.list.d/sid.list
+DEBIAN_FRONTEND=noninteractive $STD apt-get install -t bookworm-backports ffmpeg -y
+rm -rf /etc/apt/sources.list.d/backports.list deb-multimedia-keyring_2016.8.1_all.deb
 $STD apt update
 msg_ok "Installed FFmpeg"
+
+msg_info "Setting Up Hardware Acceleration"
+$STD apt-get -y install {va-driver-all,ocl-icd-libopencl1,intel-opencl-icd,vainfo,intel-gpu-tools}
+if [[ "$CTTYPE" == "0" ]]; then
+  chgrp video /dev/dri
+  chmod 755 /dev/dri
+  chmod 660 /dev/dri/*
+  $STD adduser $(id -u -n) video
+  $STD adduser $(id -u -n) render
+fi
+msg_ok "Set Up Hardware Acceleration"
 
 msg_info "Installing ErsatzTV" 
 RELEASE=$(curl -s https://api.github.com/repos/ErsatzTV/ErsatzTV/releases | grep -oP '"tag_name": "\K[^"]+' | head -n 1)
