@@ -32,13 +32,13 @@ This fork aims to add support for Nvidia GPU. The scripts are not guaranteed to 
 - Compute GPU (LXC): Nvidia T600
 - Gaming GPU (VM): Nvidia RTX 2060
 - Motherboard: Asrock B450M Pro4-F
-- RAM: 2x16GB HyperX (non ECC)
+- RAM: 4x8GB HyperX (non ECC)
 
 # Extra scripts
 Here's a shortlist of scripts/apps that did not get merged upstream (tteck) for various reasons:
 - <a href="https://github.com/CollaboraOnline/online">Collabora Online</a>
 - <a href="https://github.com/remz1337/Backup2Azure">Backup2Azure</a>
-- <a href="https://github.com/blakeblackshear/frigate">Frigate</a> with Nvidia GPU passthrough
+- <a href="https://github.com/blakeblackshear/frigate">Frigate</a> with Nvidia GPU passthrough (older cards such as Pascal may not work)
 - <a href="https://github.com/claabs/epicgames-freegames-node">Epic Games free games</a>
 - <a href="https://github.com/AnalogJ/scrutiny">Scrutiny</a>
 - <a href="https://github.com/remz1337/SAQLottery">SAQLottery</a>
