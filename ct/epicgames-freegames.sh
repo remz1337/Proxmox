@@ -20,9 +20,9 @@ EOF
 header_info
 echo -e "Loading..."
 APP="Epicgames-Freegames"
-var_disk="4"
+var_disk="3"
 var_cpu="1"
-var_ram="512"
+var_ram="256"
 var_os="debian"
 var_version="12"
 variables
