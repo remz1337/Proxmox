@@ -1,29 +1,30 @@
 #!/usr/bin/env bash
 source <(curl -s https://raw.githubusercontent.com/tteck/Proxmox/main/misc/build.func)
 # Copyright (c) 2021-2024 tteck
-# Author: tteck (tteckster)
+# Author: tteck
+# Co-Author: havardthom
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
 
 function header_info {
 clear
-cat <<"EOF"
- _____         __    __    _
-/__  /  ____ _/ /_  / /_  (_)  __
-  / /  / __ `/ __ \/ __ \/ / |/_/
- / /__/ /_/ / /_/ / /_/ / />  <
-/____/\__,_/_.___/_.___/_/_/|_|
+cat <<"EOF"     
+   ____  ____
+  / __ \/ / /___ _____ ___  ____ _
+ / / / / / / __ `/ __ `__ \/ __ `/
+/ /_/ / / / /_/ / / / / / / /_/ /
+\____/_/_/\__,_/_/ /_/ /_/\__,_/
 
 EOF
 }
 header_info
 echo -e "Loading..."
-APP="Zabbix"
-var_disk="6"
-var_cpu="2"
+APP="Ollama"
+var_disk="24"
+var_cpu="4"
 var_ram="4096"
-var_os="debian"
-var_version="12"
+var_os="ubuntu"
+var_version="22.04"
 variables
 color
 catch_errors
@@ -54,12 +55,11 @@ function default_settings() {
 
 function update_script() {
 header_info
-if [[ ! -f /etc/zabbix/zabbix_server.conf ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
-msg_info "Updating $APP LXC"
+if [[ ! -d /opt/ollama ]]; then msg_error "No ${APP} Installation Found!"; exit; fi
+msg_info "Updating ${APP}"
 apt-get update &>/dev/null
 apt-get -y upgrade &>/dev/null
-systemctl restart zabbix-server
-msg_ok "Updated $APP LXC"
+msg_ok "Updated Successfully"
 exit
 }
 
@@ -69,4 +69,4 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${APP} should be reachable by going to the following URL.
-         ${BL}http://${IP}/zabbix${CL} \n"
+         ${BL}http://${IP}:11434${CL} \n"

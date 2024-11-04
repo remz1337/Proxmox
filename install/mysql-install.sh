@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
 # Copyright (c) 2021-2024 tteck
-# Author: tteck (tteckster)
+# Author: tteck
+# Co-Author: MickLesk (Canbiz)
 # License: MIT
 # https://github.com/tteck/Proxmox/raw/main/LICENSE
+# Source: https://www.mysql.com/products/community | https://www.phpmyadmin.net
 
 source /dev/stdin <<< "$FUNCTIONS_FILE_PATH"
 color
@@ -14,16 +16,31 @@ network_check
 update_os
 
 msg_info "Installing Dependencies"
-$STD apt-get install -y curl
-$STD apt-get install -y sudo
-$STD apt-get install -y mc
+$STD apt-get install -y \
+  sudo \
+  lsb-release \
+  curl \
+  gnupg \
+  mc
 msg_ok "Installed Dependencies"
 
-msg_info "Installing MariaDB"
-$STD apt-get install -y mariadb-server
-sed -i 's/^# *\(port *=.*\)/\1/' /etc/mysql/my.cnf
-sed -i 's/^bind-address/#bind-address/g' /etc/mysql/mariadb.conf.d/50-server.cnf
-msg_ok "Installed MariaDB"
+msg_info "Installing MySQL"
+curl -fsSL https://repo.mysql.com/RPM-GPG-KEY-mysql-2023 | gpg --dearmor  -o /usr/share/keyrings/mysql.gpg
+echo "deb [signed-by=/usr/share/keyrings/mysql.gpg] http://repo.mysql.com/apt/debian $(lsb_release -sc) mysql-8.0" >/etc/apt/sources.list.d/mysql.list
+$STD apt-get update
+export DEBIAN_FRONTEND=noninteractive
+$STD apt-get install -y \
+  mysql-community-client \
+  mysql-community-server
+msg_ok "Installed MySQL"
+
+msg_info "Configure MySQL Server"
+ADMIN_PASS="$(openssl rand -base64 18 | cut -c1-13)"
+$STD mysql -uroot -p"$ADMIN_PASS" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$ADMIN_PASS'; FLUSH PRIVILEGES;"
+echo "" >~/mysql.creds
+echo -e "MySQL user: root" >>~/mysql.creds
+echo -e "MySQL password: $ADMIN_PASS" >>~/mysql.creds
+msg_ok "MySQL Server configured"
 
 read -r -p "Would you like to add PhpMyAdmin? <y/N> " prompt
 if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
@@ -49,6 +66,10 @@ if [[ ${prompt,,} =~ ^(y|yes)$ ]]; then
 	systemctl restart apache2
   msg_ok "Installed phpMyAdmin"
 fi
+
+msg_info "Start Service"
+systemctl enable -q --now mysql
+msg_ok "Service started"
 
 motd_ssh
 customize

@@ -331,7 +331,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=root
-#Environment="PLUS_API_KEY=<enter your key here>"
+# Environment=PLUS_API_KEY=
 ExecStartPre=+rm /dev/shm/logs/frigate/current
 ExecStart=/bin/bash -c "bash /opt/frigate/docker/main/rootfs/etc/s6-overlay/s6-rc.d/frigate/run 2> >(/usr/bin/ts '%%Y-%%m-%%d %%H:%%M:%%.S ' >&2) | /usr/bin/ts '%%Y-%%m-%%d %%H:%%M:%%.S '"
 StandardOutput=file:/dev/shm/logs/frigate/current

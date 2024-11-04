@@ -8,10 +8,74 @@
 <h3 align="center">All notable changes to this project will be documented in this file.</h3>
 
 > [!CAUTION]
-Be cautious of copycat or coat-tailing sites that exploit the project's popularity with potentially malicious intent. Please only trust information from https://Helper-Scripts.com/ or https://tteck.github.io/Proxmox/.
+Exercise vigilance regarding copycat or coat-tailing sites that seek to exploit the project's popularity for potentially malicious purposes.
 
 > [!NOTE]
 All LXC instances created using this repository come pre-installed with Midnight Commander, which is a command-line tool (`mc`) that offers a user-friendly file and directory management interface for the terminal environment.
+
+## 2024-10-27
+
+### Changed
+
+- **Open WebUI LXC** [(Commit)](https://github.com/tteck/Proxmox/commit/8a21f6e7f025a911865395d4c0fa9a001bd0d512)
+  - Refactor Script to add an option to install Ollama.
+
+## 2024-10-26
+
+### Changed
+
+- **AdventureLog LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/adventurelog-install.sh)
+  - NEW Script
+
+## 2024-10-25
+
+### Changed
+
+- **Zoraxy LXC** [(Commit)](https://github.com/tteck/Proxmox/commit/468a5d367ded4cf453a1507452e112ac3e234e2a)
+  - Switch built from source to a pre-compiled binary version.
+  - Breaking Change
+
+## 2024-10-23
+
+### Changed
+
+- **Wallos LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/wallos-install.sh)
+  - NEW Script
+- **Open WebUI LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/openwebui-install.sh)
+  - NEW Script
+
+## 2024-10-19
+
+### Changed
+
+- **Cockpit LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/cockpit-install.sh)
+  - NEW Script
+- **Neo4j LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/neo4j-install.sh)
+  - NEW Script
+
+## 2024-10-18
+
+### Changed
+
+- **ArchiveBox LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/archivebox-install.sh)
+  - NEW Script
+
+## 2024-10-15
+
+### Changed
+
+- **evcc LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/evcc-install.sh)
+  - NEW Script
+
+## 2024-10-10
+
+### Changed
+
+- **MySQL LXC** [(View Source)](https://github.com/tteck/Proxmox/blob/main/install/mysql-install.sh)
+  - NEW Script
+- **Tianji LXC** [(Commit)](https://github.com/tteck/Proxmox/commit/4c83a790ac9b040da1f11ad2cbe13d3fc5f480e9)
+  - Breaking Change
+  - Switch from `pm2` process management to `systemd`
 
 ## 2024-10-03
 

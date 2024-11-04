@@ -63,6 +63,17 @@ if ! dpkg -s libjpeg-dev >/dev/null 2>&1; then
 fi
 pip3 install changedetection.io --upgrade &>/dev/null
 pip3 install playwright --upgrade &>/dev/null
+if [[ -f /etc/systemd/system/browserless.service ]]; then
+  git -C /opt/browserless/ fetch --all &>/dev/null
+  git -C /opt/browserless/ reset --hard origin/main &>/dev/null
+  npm update --prefix /opt/browserless &>/dev/null
+  npm run build --prefix /opt/browserless &>/dev/null
+  npm run build:function --prefix /opt/browserless &>/dev/null
+  npm prune production --prefix /opt/browserless &>/dev/null
+  systemctl restart browserless
+else
+  msg_error "No Browserless Installation Found!"
+fi
 systemctl restart changedetection
 msg_ok "Updated Successfully"
 exit

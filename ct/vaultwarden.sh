@@ -46,7 +46,6 @@ function default_settings() {
   SD=""
   NS=""
   MAC=""
-  FW=1
   VLAN=""
   SSH="no"
   VERB="no"
@@ -58,6 +57,7 @@ function update_script() {
     msg_error "No ${APP} Installation Found!"
     exit
   fi
+ 
   VAULT=$(curl -s https://api.github.com/repos/dani-garcia/vaultwarden/releases/latest |
     grep "tag_name" |
     awk '{print substr($2, 2, length($2)-3) }')
@@ -73,15 +73,7 @@ function update_script() {
 
   header_info
   if [ "$UPD" == "1" ]; then
-	echo -e "\n ⚠️  Vaultwarden updates need 4vCPU and 4096MB RAM \n"
-	read -r -p "Did you allocate resources to complete the update? <y/N> " prompt
-    if [[ "${prompt,,}" =~ ^(y|yes)$ ]]; then
-      echo -e "Proceeding with current resources"
-    else
-      echo -e " ⚠️  ${RD}Increase container resources${CL}"
-      exit 1
-    fi
-
+    whiptail --backtitle "Proxmox VE Helper Scripts" --msgbox --title "SET RESOURCES" "Please set the resources in your ${APP} LXC to ${var_cpu}vCPU and ${var_ram}RAM for the build process before continuing" 10 75
     msg_info "Stopping Vaultwarden"
     systemctl stop vaultwarden.service
     msg_ok "Stopped Vaultwarden"
@@ -108,7 +100,7 @@ function update_script() {
     msg_ok "Started Vaultwarden"
 
     msg_ok "$VAULT Update Successful"
-    echo -e "\n ⚠️  Don't forget to set resources back to normal settings (1vCPU and 256MB RAM) \n"
+    echo -e "\n ⚠️  Ensure you set resources back to normal settings \n"
     exit
   fi
   if [ "$UPD" == "2" ]; then
